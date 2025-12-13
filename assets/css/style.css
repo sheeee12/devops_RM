@@ -1,0 +1,31 @@
+
+/* Appliquer la police moderne partout */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f6f9; 
+}
+
+/* Rendre les cartes (Cards) plus jolies avec une ombre douce */
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+}
+
+/* Petit effet au survol des cartes */
+.card:hover {
+    transform: translateY(-2px);
+}
+
+/* Boutons primaires avec un dégradé */
+.btn-primary {
+    background: linear-gradient(45deg, #0d6efd, #0a58ca);
+    border: none;
+    box-shadow: 0 4px 6px rgba(13, 110, 253, 0.2);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(45deg, #0a58ca, #084298);
+    transform: scale(1.02);
+}

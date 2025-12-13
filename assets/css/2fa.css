@@ -1,0 +1,223 @@
+/* --- 1. IMPORTS & FONTS --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+
+:root {
+    --primary-color: #059669;  
+    --accent-color: #70eebb;   
+    --bg-left: #f1f5f9;       
+    --text-main: #334155;
+    --text-muted: #94a3b8;
+}
+/* --- 2. BASE --- */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0; height: 100vh; overflow: hidden;
+    background: #f1f5f9;
+}
+
+.split-screen { display: flex; height: 100%; width: 100%; position: relative; }
+
+/* --- 3. GAUCHE : FORMULAIRE (FOND BLANC PUR) --- */
+.left-pane {
+    width: 45%;
+    background-color: #ffffff; /* BLANC PUR */
+    background-image: none;    /* PAS DE DEGRADE ICI */
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    padding: 0 5%; position: relative; overflow: hidden;
+}
+
+/* Logo */
+.brand-logo {
+    position: absolute;
+    top: 20px; /* Déplace le logo et le texte plus haut */
+    left: 40px;
+    z-index: 10;
+    font-weight: 800;
+    font-size: 1.5rem;
+    color: #059669;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Conteneur principal */
+.login-content { 
+    width: 100%; 
+    max-width: 450px; 
+    z-index: 2; 
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 20px;
+}
+
+/* Typographie */
+.login-title { 
+    font-size: 1.8rem; 
+    font-weight: 700; 
+    color: #083d2c; 
+    margin-bottom: 10px; /* Espacement sous le titre */
+}
+.login-subtitle { 
+    color: #64748b; 
+    margin-bottom: 40px; /* Espacement sous le sous-titre */
+    font-size: 0.95rem; 
+}
+
+/* --- 4. INPUTS --- */
+.form-floating { 
+    position: relative; 
+    margin-bottom: 24px; 
+    max-width: 100%; /* Correspondre à la largeur du bouton */
+    width: 80%; /* Ajuster pour correspondre au bouton */
+    margin: 0 auto; /* Centrer les champs */
+    margin-top: 15px; /* Ajouter un espacement au-dessus des champs de formulaire */
+}
+
+.form-floating > .form-control {
+    border: 2px solid #e2e8f0; border-radius: 12px; height: 50px; /* Ajuster la hauteur pour correspondre au bouton */
+    background-color: #ffffff;
+    font-size: 1rem; padding: 16px;
+    transition: all 0.3s;
+}
+
+.form-floating > .form-control:focus {
+    border-color: #059669;
+    box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.15);
+}
+
+.form-floating > label { color: #94a3b8; transition: 0.2s; }
+
+/* Masquer Label si texte */
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+    opacity: 0; transform: translateY(-10px); visibility: hidden;
+}
+.form-floating > .form-control:focus, .form-floating > .form-control:not(:placeholder-shown) {
+    padding-top: 0.625rem; padding-bottom: 0.625rem; height: 55px; line-height: normal;
+}
+
+/* Input Code Spécial */
+#code2fa {
+    letter-spacing: 0.5rem;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: #059669;
+}
+
+
+/* --- 5. BOUTON --- */
+.btn-corp {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: white; padding: 16px 24px;
+    border-radius: 12px; 
+    font-weight: 600; font-size: 1rem; 
+    letter-spacing: 0.5px;
+    transition: all 0.3s; 
+    border: none; 
+    width: 80%; /* Correspondre à la largeur des champs */
+    margin: 0 auto; /* Centrer le bouton */
+    margin-top: 10px;
+}
+.btn-corp:hover { transform: translateY(-2px); box-shadow: 0 4px 15px #083d2c }
+
+/* Liens */
+.link-muted { color: #64748b; transition: 0.2s; }
+.link-muted:hover { color: #059669; }
+
+.right-pane {
+    width: 65%;
+    background: linear-gradient(135deg, #084230 0%, #229c45 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px;
+    color: white;
+    position: relative;
+}
+
+.hero-text {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    background: linear-gradient(to right, #72f590, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.accent {
+    background: linear-gradient(to right,  rgb(158, 223, 193), var(--accent-color));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; 
+}
+.hero-sub { font-size: 1.2rem;
+     color: #f7f8fa; max-width: 520px;
+      position: relative; z-index: 2; 
+      line-height: 1.6; }
+
+.hero-features { list-style: none; padding: 0; margin-top: 30px; position: relative; z-index: 2; }
+.hero-features li { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; font-weight: 500; color: #e0e7ff; }
+.hero-features i { color: var(--accent-color); }
+
+/* Décoration Fond (Empreinte digitale géante) */
+.background-deco {
+    position: absolute; bottom: -50px; right: -50px;
+    font-size: 350px; color: white;
+    pointer-events: none; z-index: 1;
+}
+
+/* --- 7. SPLASH SCREEN --- 
+#splash-screen {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: #020617; z-index: 9999;
+    display: flex; justify-content: center; align-items: center;
+    clip-path: circle(150% at 50% 50%); 
+    transition: clip-path 1.2s cubic-bezier(0.77, 0, 0.175, 1);
+}
+#splash-screen.finish { clip-path: circle(0% at 50% 50%); pointer-events: none; }
+
+.splash-bg {
+    position: absolute; width: 100%; height: 100%; opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3 21h18M5 21V7l8-4 8 4v14M9 10a1 1 0 011-1h4a1 1 0 011 1v10H9V10z' fill='none' stroke='%23ffffff' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-size: 80px 80px; animation: movePattern 40s linear infinite;
+}
+@keyframes movePattern { from { background-position: 0 0; } to { background-position: 80px 80px; } }*/
+
+.splash-logo {
+    z-index: 2; color: white; display: flex; flex-direction: column; align-items: center; animation: pulseLogo 2s infinite;
+}
+.splash-logo i { font-size: 5rem; color: #059669; }
+@keyframes pulseLogo { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.8; } }
+
+/* --- 8. UTILITAIRES --- */
+.alert { border-radius: 12px; font-size: 0.9rem; text-align: left; margin-bottom: 20px;}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .right-pane { display: none; }
+    .left-pane { width: 100%; padding: 40px; }
+}
+
+/* Styles spécifiques pour le premier cas (configuration 2FA) */
+.login-content.config-2fa {
+    justify-content: flex-start;
+    padding-top: 20px; /* Réduction de l'espace en haut */
+    padding-bottom: 20px; /* Réduction de l'espace en bas */
+}
+
+.login-content.config-2fa .mb-4 {
+    margin-top: 10px; /* Ajuste l'espace entre le texte et le QR code */
+}
+
+/* Styles spécifiques pour le deuxième cas (2FA déjà configuré) */
+.login-content.verified-2fa {
+    justify-content: center; /* Centre verticalement le contenu */
+}
+
+

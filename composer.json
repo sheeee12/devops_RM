@@ -1,0 +1,19 @@
+{
+    "name": "ultra-pc/gestion-frais",
+    "autoload": {
+        "psr-4": {
+            "UltraPc\\GestionFrais\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "TagOuaj",
+            "email": "ouajghyhajar44@gmail.com"
+        }
+    ],
+    "require": {
+        "phpmailer/phpmailer": "^7.0",
+        "sonata-project/google-authenticator": "^2.3",
+        "tecnickcom/tcpdf": "^6.10"
+    }
+}

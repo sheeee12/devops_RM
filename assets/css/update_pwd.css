@@ -1,0 +1,142 @@
+body {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, #0f172a, #0b0f0b);
+    min-height: 100vh;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0b0f0b;
+}
+
+.update-body {
+    width: 100%;
+    max-width: 430px;
+    padding: 32px 16px;
+    text-align: center;
+}
+
+.update-logo {
+        position: absolute;
+        top: 30px;
+        left: 40px;
+        font-weight: 700;
+        font-size: 1.4rem;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        z-index: 10;
+    }
+
+.update-logo i {
+    font-size: 1.4rem;
+    color: #10b981;
+}
+
+.update-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 20px ;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+    text-align: left;
+}
+
+.update-header .update-tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    color: #059669;
+    margin-bottom: 10px;
+}
+
+.update-header h1 {
+    font-size: 1.6rem;
+    margin: 0 0 8px;
+    color: #0f172a;
+}
+
+.update-header .subtitle {
+    margin: 0 0 24px;
+    color: #64748b;
+    font-size: 0.95rem;
+}
+
+.form-floating > label {
+    color: #94a3b8;
+}
+
+.form-control {
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    padding-right: 45px;
+}
+
+.form-control:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+}
+
+.toggle-pass {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    color: #b89494;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.feedback-text {
+    font-size: 0.85rem;
+    margin-top: -8px;
+    margin-bottom: 18px;
+    color: #fb2525;
+}
+
+.btn-corp {
+    background: #0b9444;
+    color: #fff;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 600;
+    border: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-corp:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-corp:not(:disabled):hover {
+    transform: translateY(-1px);
+    background: #0b9444;
+    color: #fff;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.status-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: rgba(251, 191, 36, 0.15);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #d97706;
+    font-size: 1.4rem;
+    margin-bottom: 16px;
+}
+
+.update-foot {
+    margin-top: 18px;
+    color: #cbd5f5;
+    font-size: 0.9rem;
+}
+

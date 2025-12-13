@@ -1,0 +1,79 @@
+# Fichiers sensibles et configuration
+config/mail_credentials.php
+!config/mail_credentials.php.example
+config/Database.php
+!config/Database.php.example
+config/api_credentials.php
+!config/api_credentials.php.example
+.env
+.env.local
+*.env
+
+# Fichiers de test et debug
+fix_pass.php
+config/test_db.php
+forgot2.php
+*_test.php
+*_debug.php
+
+# Uploads et fichiers utilisateur
+uploads/avatars/*
+uploads/proofs/*
+!uploads/avatars/.gitkeep
+!uploads/proofs/.gitkeep
+uploads/*.pdf
+uploads/*.jpg
+uploads/*.jpeg
+uploads/*.png
+uploads/*.gif
+
+# Avatars de test dans assets/img
+assets/img/avatar_*.png
+assets/img/avatar_*.jpg
+assets/img/avatar_*.jpeg
+
+# Logs
+*.log
+logs/
+error_log
+
+# Fichiers temporaires
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Composer
+/vendor/
+composer.phar
+
+# Node modules (si utilisé)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Cache
+cache/
+tmp/
+
+# Fichiers de sauvegarde
+*.sql.backup
+*.backup
+
+# Fichiers système
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
