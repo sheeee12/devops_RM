@@ -77,3 +77,4 @@ tmp/
 .Trashes
 ehthumbs.db
 Desktop.ini
+jenkins_data/
