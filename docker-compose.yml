@@ -1,18 +1,19 @@
-version: '3.8' # C'est la version du langage Docker.
+version: '3.8'
 
 services:
-  # Ici, on liste les serveurs (services) dont on a besoin.
-
-  chef_jenkins:
-    # On donne un nom à notre premier serveur.
-    image: jenkins/jenkins:lts # On ne l'installe pas, on dit à Docker d'aller chercher la "photo" (image) officielle de Jenkins sur internet.
+  # 1. On garde Jenkins, mais on lui donne un nom fixe
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins # <--- AJOUT : C'est son nom sur le réseau Docker
     ports:
-      - "8080:8080" # LOGIQUE : Ton Windows (port 8080) communique avec le Jenkins dans le conteneur (port 8080).
+      - "8080:8080"
     volumes:
-      - ./jenkins_data:/var/jenkins_home # LOGIQUE : C'est la mémoire. Tout ce que tu feras dans Jenkins sera enregistré dans un dossier "jenkins_data" sur ton PC. Si le conteneur meurt, tes données survivent.
+      - ./jenkins_data:/var/jenkins_home
 
-  auditeur_sonarqube:
-    # Notre deuxième serveur.
+  # 2. On change "auditeur_sonarqube" en "sonarqube" tout court
+  sonarqube:
+    # <--- CHANGEMENT : Pour que l'URL http://sonarqube:9000 fonctionne
     image: sonarqube:lts-community
+    container_name: sonarqube # <--- AJOUT : C'est son identité officielle
     ports:
-      - "9000:9000" # SonarQube s'écoute sur le port 9000.
+      - "9000:9000"
