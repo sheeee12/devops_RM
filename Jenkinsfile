@@ -11,8 +11,15 @@ pipeline {
         stage('Audit de Sécurité (SonarQube)') {
             steps {
                 echo 'Envoi du code à SonarQube pour analyse...'
-                // C est ici qu on connectera SonarQube plus tard
-            }
+// Cette étape utilise le plugin SonarQube pour scanner le code PHP
+                script {
+                    def scannerHome = tool 'SonarScanner' // On appelle l outil de scan
+                    withSonarQubeEnv('MySonar') { // On se connecte au serveur configuré
+                        sh "${scannerHome}/bin/sonar-scanner \
+                        -Dsonar.projectKey=RembourseMaroc \
+                        -Dsonar.sources=. \
+                        -Dsonar.language=php"
+                    }            }
         }
         stage('Packaging (Docker)') {
             steps {
