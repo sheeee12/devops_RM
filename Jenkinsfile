@@ -2,28 +2,32 @@ pipeline {
     agent any
 
     stages {
-        stage('Construction (Build)') {
+        stage('Construction') {
             steps {
-                echo 'Vérification de l environnement PHP...'
-                // Ici on dira plus tard à Jenkins d installer les bibliothèques
+                echo 'Preparation du projet RembourseMaroc...'
             }
         }
-        stage('Audit de Sécurité (SonarQube)') {
+
+        stage('Audit de Securite (SonarQube)') {
             steps {
-                echo 'Envoi du code à SonarQube pour analyse...'
-// Cette étape utilise le plugin SonarQube pour scanner le code PHP
                 script {
-                    def scannerHome = tool 'SonarScanner' // On appelle l outil de scan
-                    withSonarQubeEnv('MySonar') { // On se connecte au serveur configuré
+                    // On définit l'outil de scan
+                    def scannerHome = tool 'SonarScanner'
+                    
+                    // On se connecte à l'environnement SonarQube configuré dans Jenkins
+                    withSonarQubeEnv('MySonar') {
                         sh "${scannerHome}/bin/sonar-scanner \
                         -Dsonar.projectKey=RembourseMaroc \
                         -Dsonar.sources=. \
                         -Dsonar.language=php"
-                    }            }
+                    }
+                }
+            }
         }
-        stage('Packaging (Docker)') {
+        
+        stage('Packaging Docker') {
             steps {
-                echo 'Création de l image Docker de RembourseMaroc...'
+                echo 'Bientôt : Construction de l image Docker...'
             }
         }
     }
