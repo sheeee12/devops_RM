@@ -1,19 +1,29 @@
 version: '3.8'
-
 services:
-  # 1. On garde Jenkins, mais on lui donne un nom fixe
   jenkins:
     image: jenkins/jenkins:lts
-    container_name: jenkins # <--- AJOUT : C'est son nom sur le réseau Docker
+    container_name: jenkins
+    privileged: true
+    user: root
     ports:
       - "8080:8080"
     volumes:
       - ./jenkins_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
 
-  # 2. On change "auditeur_sonarqube" en "sonarqube" tout court
   sonarqube:
-    # <--- CHANGEMENT : Pour que l'URL http://sonarqube:9000 fonctionne
     image: sonarqube:lts-community
-    container_name: sonarqube # <--- AJOUT : C'est son identité officielle
+    container_name: sonarqube
     ports:
       - "9000:9000"
+    volumes:
+      # <--- ON AJOUTE LA MÉMOIRE ICI AUSSI !
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+
+volumes:
+  # On déclare les coffres-forts
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
