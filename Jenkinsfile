@@ -16,10 +16,13 @@ pipeline {
                     
                     // On se connecte à l'environnement SonarQube configuré dans Jenkins
                     withSonarQubeEnv('MySonar') {
-                        sh "${scannerHome}/bin/sonar-scanner \
+                         sh """
+                        ${scannerHome}/bin/sonar-scanner \
                         -Dsonar.projectKey=RembourseMaroc \
                         -Dsonar.sources=. \
-                        -Dsonar.language=php"
+                        -Dsonar.language=php \
+                        -Dsonar.exclusions=jenkins_data/**,uploads/**,assets/**,lang/**,**/*.example
+                        """
                     }
                 }
             }
