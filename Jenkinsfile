@@ -49,6 +49,10 @@ pipeline {
             steps {
                 script {
                     echo '--- DÉPLOIEMENT AUTOMATISÉ (BUILD + UP) ---'
+                    // On force l'arrêt et la suppression des anciens conteneurs de l'app
+                    // On ne touche pas à Jenkins ni Sonar (ils sont dans un autre réseau ou lancés à part)
+                    sh 'docker compose stop app_rembourse_1 app_rembourse_2 db_rembourse nginx_lb || true'
+                    sh 'docker compose rm -f app_rembourse_1 app_rembourse_2 db_rembourse nginx_lb || true'
                     
                     // --build : force la reconstruction des images si le code a changé
                     // --no-deps : évite de toucher à jenkins/sonarqube
