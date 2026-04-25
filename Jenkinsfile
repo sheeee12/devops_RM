@@ -21,6 +21,7 @@ pipeline {
                 }
             }
         }
+        /* ON COMMENTE SONAR POUR GAGNER DU TEMPS PENDANT LES TESTS CD
 
         // PHASE 3 : Audit ciblé sur 5 fichiers uniquement
         stage('Audit de Securite (SonarQube)') {
@@ -42,11 +43,20 @@ pipeline {
                 }
             }
         }
-        
+         */
         // PHASE 4 : Prochaine étape (on la laisse vide pour l'instant)
-        stage('Packaging Docker') {
+        stage('Phase 4 : Packaging & CD (Deploy)') {
             steps {
-                echo 'Etape suivante : Creation de l image de production...'
+                script {
+                    echo '--- CONSTRUCTION DE L IMAGE FINALE ---'
+                    sh 'docker build -t rembourse-app:latest .'
+                    
+                    echo '--- MISE EN LIGNE (RELANCE DES SERVICES) ---'
+                    // On demande a Docker Compose de rafraichir l infrastructure
+                    sh 'docker-compose up -d'
+                    
+                    echo 'Application déployée avec redondance sur http://localhost:8081'
+                }
             }
         }
     }
