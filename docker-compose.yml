@@ -41,8 +41,9 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: rembourse_maroc
-    volumes: [ "db_data:/var/lib/mysql" ]
-    networks: [ "devops-net" ]
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./config/sql:/docker-entrypoint-initdb.d
   # --- LOAD BALANCER ---
   nginx_lb:
     build:

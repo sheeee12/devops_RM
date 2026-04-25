@@ -296,3 +296,10 @@ COMMIT;
 SELECT 'Base de données créée avec succès !' as message;
 SELECT 'N''oubliez pas de configurer config/Database.php avec vos identifiants' as rappel;
 
+
+-- ============================================================================
+-- AJOUT D'UN ADMINISTRATEUR PAR DÉFAUT
+-- Email : admin@rembourse.ma | Mot de passe : admin123
+-- ============================================================================
+INSERT INTO `users` (`nom`, `prenom`, `email`, `password`, `role`) VALUES 
+('System', 'Admin', 'admin@rembourse.ma', '$2y$10$86yP08P9.nO4E0m0Jp.GoeA8H8Gz8f8Z8f8Z8f8Z8f8Z8f8Z8f8Z8', 'admin');
