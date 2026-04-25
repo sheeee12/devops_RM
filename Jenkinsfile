@@ -14,8 +14,16 @@ pipeline {
             steps {
                 script {
                     echo '--- INSTALLATION VIA CONTENEUR COMPOSER ---'
-                    // On installe les librairies dans le dossier /vendor du PC
-                    sh 'docker run --rm -v ${WORKSPACE}:/app composer install --no-interaction --prefer-dist'
+                    
+                    /* 
+                       Cette syntaxe dit à Jenkins : 
+                       1. Lance l'image composer
+                       2. Partage automatiquement les fichiers du projet
+                       3. Entre dans le conteneur et exécute la commande sh
+                    */
+                    docker.image('composer:latest').inside {
+                        sh 'composer install --no-interaction --prefer-dist'
+                    }
                 }
             }
         }
