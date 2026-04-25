@@ -45,17 +45,19 @@ pipeline {
         }
          */
         // PHASE 4 : Prochaine étape (on la laisse vide pour l'instant)
-        stage('Phase 4 : Packaging & CD (Deploy)') {
+      stage('Phase 4 : Packaging & CD (Deploy)') {
             steps {
                 script {
-                    echo '--- CONSTRUCTION DES IMAGES (APP + LB) ---'
-                    sh 'docker build -t rembourse-app:latest .'
-                    sh 'docker build -t rembourse-nginx:latest -f Dockerfile.nginx .'
+                    echo '--- DÉPLOIEMENT AUTOMATISÉ (BUILD + UP) ---'
                     
-                    echo '--- MISE EN LIGNE CIBLÉE ---'
-                    sh 'docker compose up -d --build --no-deps app_rembourse_1 app_rembourse_2 db_rembourse nginx_lb'
+                    // --build : force la reconstruction des images si le code a changé
+                    // --no-deps : évite de toucher à jenkins/sonarqube
+                    sh '''
+                    docker compose up -d --build --no-deps app_rembourse_1 app_rembourse_2 db_rembourse nginx_lb
+                    '''
                     
-                    echo 'Félicitations ! L architecture est en ligne sur http://localhost:8081'
+                    echo 'Félicitations ! Ton infrastructure est opérationnelle.'
+                    echo 'Accès App : http://localhost:8081'
                 }
             }
         }

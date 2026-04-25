@@ -45,6 +45,9 @@ services:
     networks: [ "devops-net" ]
   # --- LOAD BALANCER ---
   nginx_lb:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx # On lui dit quel Dockerfile utiliser
     image: rembourse-nginx:latest
     container_name: nginx_lb
     restart: always
