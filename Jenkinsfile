@@ -10,20 +10,13 @@ pipeline {
         }
 
         // PHASE 2 : On installe les librairies réelles
-        stage('Installation des Librairies') {
+       stage('Installation des Librairies') {
             steps {
                 script {
                     echo '--- INSTALLATION VIA CONTENEUR COMPOSER ---'
-                    
-                    /* 
-                       Cette syntaxe dit à Jenkins : 
-                       1. Lance l'image composer
-                       2. Partage automatiquement les fichiers du projet
-                       3. Entre dans le conteneur et exécute la commande sh
-                    */
-                    docker.image('composer:latest').inside {
-                        sh 'composer install --no-interaction --prefer-dist'
-                    }
+                    // LOGIQUE : On utilise le dossier "jenkins_data" qui est sur ton PC
+                    // Docker Desktop comprendra mieux ce chemin
+                    sh 'docker run --rm -v /var/jenkins_home/workspace/Pipeline-RembourseMaroc-Private:/app composer install --no-interaction --prefer-dist'
                 }
             }
         }
