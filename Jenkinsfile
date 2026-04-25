@@ -49,7 +49,6 @@ pipeline {
             steps {
                 script {
                     echo '--- CONSTRUCTION DES IMAGES (APP + LB) ---'
-                    sh 'rm -rf nginx.conf' || true 
                     sh 'docker build -t rembourse-app:latest .'
                     sh 'docker build -t rembourse-nginx:latest -f Dockerfile.nginx .'
                     
