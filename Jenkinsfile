@@ -48,20 +48,18 @@ pipeline {
       stage('Phase 4 : Packaging & CD (Deploy)') {
             steps {
                 script {
-                    echo '--- DÉPLOIEMENT AUTOMATISÉ (BUILD + UP) ---'
-                    // On force l'arrêt et la suppression des anciens conteneurs de l'app
-                    // On ne touche pas à Jenkins ni Sonar (ils sont dans un autre réseau ou lancés à part)
-                    sh 'docker compose stop app_rembourse_1 app_rembourse_2 db_rembourse nginx_lb || true'
-                    sh 'docker compose rm -f app_rembourse_1 app_rembourse_2 db_rembourse nginx_lb || true'
+                    echo '--- NETTOYAGE RADICAL PAR NOMS ---'
                     
-                    // --build : force la reconstruction des images si le code a changé
-                    // --no-deps : évite de toucher à jenkins/sonarqube
+                    // Cette commande tue et supprime par NOM, peu importe le projet. 
+                    // C'est la seule façon d'être sûr de libérer le nom "nginx_lb".
+                    sh 'docker rm -f nginx_lb db_rembourse app_rembourse_1 app_rembourse_2 || true'
+                    
+                    echo '--- DÉPLOIEMENT AUTOMATISÉ (BUILD + UP) ---'
                     sh '''
                     docker compose up -d --build --no-deps app_rembourse_1 app_rembourse_2 db_rembourse nginx_lb
                     '''
                     
-                    echo 'Félicitations ! Ton infrastructure est opérationnelle.'
-                    echo 'Accès App : http://localhost:8081'
+                    echo 'Félicitations ! http://localhost:8081 est prêt !'
                 }
             }
         }
