@@ -48,18 +48,15 @@ pipeline {
         stage('Phase 4 : Packaging & CD (Deploy)') {
             steps {
                 script {
-                    echo '--- CONSTRUCTION DE L IMAGE FINALE ---'
+                    echo '--- CONSTRUCTION DES IMAGES (APP + LB) ---'
+                    sh 'rm -rf nginx.conf' || true 
                     sh 'docker build -t rembourse-app:latest .'
+                    sh 'docker build -t rembourse-nginx:latest -f Dockerfile.nginx .'
                     
-                    echo '--- MISE EN LIGNE CIBLÉE (REDONDANCE) ---'
+                    echo '--- MISE EN LIGNE CIBLÉE ---'
+                    sh 'docker compose up -d --build --no-deps app_rembourse_1 app_rembourse_2 db_rembourse nginx_lb'
                     
-                    // LOGIQUE WHITEBOX : On ne lance QUE les services de production.
-                    // On ne cite PAS 'jenkins' ni 'sonarqube' ici.
-                    sh '''
-                    docker compose up -d --no-deps app_rembourse_1 app_rembourse_2 db_rembourse nginx_lb
-                    '''
-                    
-                    echo 'Application mise à jour avec succès sur http://localhost:8081'
+                    echo 'Félicitations ! L architecture est en ligne sur http://localhost:8081'
                 }
             }
         }

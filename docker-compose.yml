@@ -43,16 +43,16 @@ services:
       MYSQL_DATABASE: rembourse_maroc
     volumes: [ "db_data:/var/lib/mysql" ]
     networks: [ "devops-net" ]
-
   # --- LOAD BALANCER ---
-  nginx_lb:
-    image: nginx:latest
-    container_name: nginx_lb
-    restart: always
-    ports: [ "8081:80" ] # L'entrée unique pour le prof
-    volumes: [ "./nginx.conf:/etc/nginx/nginx.conf:ro" ]
-    networks: [ "devops-net" ]
-    depends_on: [ app_rembourse_1, app_rembourse_2 ]
+nginx_lb:
+  build:
+    context: .
+    dockerfile: Dockerfile.nginx # On utilise notre nouveau plan
+  container_name: nginx_lb
+  restart: always
+  ports: [ "8081:80" ]
+  networks: [ "devops-net" ]
+  depends_on: [ app_rembourse_1, app_rembourse_2 ]
 
 networks:
   devops-net:
