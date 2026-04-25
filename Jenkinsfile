@@ -13,11 +13,13 @@ pipeline {
        stage('Installation des Librairies') {
             steps {
                 script {
-                    echo '--- INSTALLATION VIA CONTENEUR COMPOSER ---'
-                    // LOGIQUE : On utilise le dossier "jenkins_data" qui est sur ton PC
-                    // Docker Desktop comprendra mieux ce chemin
-                    sh 'ls -al' 
-                    sh 'docker run --rm -v /var/jenkins_home/workspace/Pipeline-RembourseMaroc-Private:/app composer install --no-interaction --prefer-dist'
+                    echo '--- APPEL DE L OUVRIER COMPOSER ---'
+                    // LOGIQUE : 
+                    // --volumes-from jenkins : On dit à Composer de copier les dossiers de Jenkins
+                    // -w : On lui dit de travailler exactement là où Jenkins a posé le code
+                    sh 'docker run --rm --volumes-from jenkins -w /var/jenkins_home/workspace/Pipeline-RembourseMaroc-Private composer install --no-interaction --prefer-dist'
+                    
+                    echo 'Succès : L ouvrier a fini. Les librairies sont dans /vendor.'
                 }
             }
         }
