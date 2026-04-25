@@ -53,7 +53,7 @@ pipeline {
                     
                     echo '--- MISE EN LIGNE (RELANCE DES SERVICES) ---'
                     // On demande a Docker Compose de rafraichir l infrastructure
-                    sh 'docker-compose up -d'
+                    sh 'docker compose up -d'
                     
                     echo 'Application déployée avec redondance sur http://localhost:8081'
                 }
