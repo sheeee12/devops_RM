@@ -16,6 +16,7 @@ pipeline {
                     echo '--- INSTALLATION VIA CONTENEUR COMPOSER ---'
                     // LOGIQUE : On utilise le dossier "jenkins_data" qui est sur ton PC
                     // Docker Desktop comprendra mieux ce chemin
+                    sh 'ls -al' 
                     sh 'docker run --rm -v /var/jenkins_home/workspace/Pipeline-RembourseMaroc-Private:/app composer install --no-interaction --prefer-dist'
                 }
             }
