@@ -13,13 +13,11 @@ pipeline {
        stage('Installation des Librairies') {
             steps {
                 script {
-                    echo '--- APPEL DE L OUVRIER COMPOSER ---'
-                    // LOGIQUE : 
-                    // --volumes-from jenkins : On dit à Composer de copier les dossiers de Jenkins
-                    // -w : On lui dit de travailler exactement là où Jenkins a posé le code
-                    sh 'docker run --rm --volumes-from jenkins -w /var/jenkins_home/workspace/Pipeline-RembourseMaroc-Private composer install --no-interaction --prefer-dist'
+                    echo '--- MISE A JOUR DES LIBRAIRIES (MODE UPDATE) ---'
+                    // On utilise "update" car on a modifié le composer.json manuellement
+                    sh 'docker run --rm --volumes-from jenkins -w /var/jenkins_home/workspace/Pipeline-RembourseMaroc-Private composer update --no-interaction --prefer-dist'
                     
-                    echo 'Succès : L ouvrier a fini. Les librairies sont dans /vendor.'
+                    echo 'Succès : Le dossier vendor/ a été mis à jour avec PHPUnit.'
                 }
             }
         }
