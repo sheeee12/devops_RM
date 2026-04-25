@@ -51,11 +51,15 @@ pipeline {
                     echo '--- CONSTRUCTION DE L IMAGE FINALE ---'
                     sh 'docker build -t rembourse-app:latest .'
                     
-                    echo '--- MISE EN LIGNE (RELANCE DES SERVICES) ---'
-                    // On demande a Docker Compose de rafraichir l infrastructure
-                    sh 'docker-compose up -d'
+                    echo '--- MISE EN LIGNE CIBLÉE (REDONDANCE) ---'
                     
-                    echo 'Application déployée avec redondance sur http://localhost:8081'
+                    // LOGIQUE WHITEBOX : On ne lance QUE les services de production.
+                    // On ne cite PAS 'jenkins' ni 'sonarqube' ici.
+                    sh '''
+                    docker compose up -d --no-deps app_rembourse_1 app_rembourse_2 db_rembourse nginx_lb
+                    '''
+                    
+                    echo 'Application mise à jour avec succès sur http://localhost:8081'
                 }
             }
         }
