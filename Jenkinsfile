@@ -48,18 +48,25 @@ pipeline {
       stage('Phase 4 : Packaging & CD (Deploy)') {
             steps {
                 script {
-                    echo '--- NETTOYAGE RADICAL PAR NOMS ---'
-                    
-                    // Cette commande tue et supprime par NOM, peu importe le projet. 
-                    // C'est la seule façon d'être sûr de libérer le nom "nginx_lb".
+                    echo '--- NETTOYAGE CIBLÉ (Laisse Jenkins et Sonar vivants) ---'
+                    // On supprime uniquement les conteneurs de l'app par leur NOM
                     sh 'docker rm -f nginx_lb db_rembourse app_rembourse_1 app_rembourse_2 || true'
                     
-                    echo '--- DÉPLOIEMENT AUTOMATISÉ (BUILD + UP) ---'
-                    sh '''
-                    docker compose up -d --build --no-deps app_rembourse_1 app_rembourse_2 db_rembourse nginx_lb
-                    '''
+                    echo '--- LANCEMENT DE L INFRASTRUCTURE APP ---'
+                    // On lance uniquement les services de prod
+                    sh 'docker compose up -d --build --no-deps app_rembourse_1 app_rembourse_2 db_rembourse nginx_lb'
                     
-                    echo 'Félicitations ! http://localhost:8081 est prêt !'
+                    echo '--- ATTENTE DÉMARRAGE MYSQL (15s) ---'
+                    sh 'sleep 15'
+                    
+                    echo '--- INJECTION AUTOMATISÉE DES TABLES ---'
+                    // On force l'injection du fichier SQL dans la base
+                    sh 'docker exec -i db_rembourse mysql -u root -proot rembourse_maroc < config/sql/01_create_database_complete.sql'
+                    
+                    echo '--- INJECTION DE L ADMINISTRATEUR ---'
+                    sh "docker exec -i db_rembourse mysql -u root -proot rembourse_maroc -e \"INSERT INTO users (nom, prenom, email, password, role) VALUES ('System', 'Admin', 'admin@rembourse.ma', '\\\$2y\\\$10\\\$86yP08P9.nO4E0m0Jp.GoeA8H8Gz8f8Z8f8Z8f8Z8f8Z8f8Z8f8Z8f8Z', 'admin');\""
+                    
+                    echo 'Succès ! http://localhost:8081 est prêt et peuplé !'
                 }
             }
         }
