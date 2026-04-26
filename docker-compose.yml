@@ -44,6 +44,8 @@ services:
     volumes:
       - db_data:/var/lib/mysql
       - ./config/sql:/docker-entrypoint-initdb.d
+    networks: [ "devops-net" ]
+
   # --- LOAD BALANCER ---
   nginx_lb:
     build:
