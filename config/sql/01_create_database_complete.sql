@@ -285,12 +285,6 @@ INSERT INTO `categories` (`nom_categ`, `plafond_max`, `description`) VALUES
 ('Kilométrage', 0.50, 'Frais de déplacement en voiture (par km)'),
 ('Autre', 0.00, 'Autres dépenses');
 
--- ============================================================================
--- FIN DU SCRIPT
--- ============================================================================
-
-SET FOREIGN_KEY_CHECKS = 1;
-COMMIT;
 
 -- Message de confirmation
 SELECT 'Base de données créée avec succès !' as message;
@@ -298,8 +292,15 @@ SELECT 'N''oubliez pas de configurer config/Database.php avec vos identifiants' 
 
 
 -- ============================================================================
--- AJOUT D'UN ADMINISTRATEUR PAR DÉFAUT
+-- AJOUT DUN ADMINISTRATEUR PAR DÉFAUT
 -- Email : admin@rembourse.ma | Mot de passe : admin123
 -- ============================================================================
 INSERT INTO `users` (`nom`, `prenom`, `email`, `password`, `role`) VALUES 
 ('System', 'Admin', 'admin@rembourse.ma', '$2y$10$86yP08P9.nO4E0m0Jp.GoeA8H8Gz8f8Z8f8Z8f8Z8f8Z8f8Z8f8Z8', 'admin');
+
+-- ============================================================================
+-- FIN DU SCRIPT
+-- ============================================================================
+
+SET FOREIGN_KEY_CHECKS = 1;
+COMMIT;

@@ -45,24 +45,22 @@ pipeline {
         }
          */
         // PHASE 4 : Prochaine étape (on la laisse vide pour l'instant)
-      stage('Phase 4 : Packaging & CD (Deploy)') {
+   stage('Phase 4 : Packaging & CD (Deploy)') {
             steps {
                 script {
                     echo '--- NETTOYAGE CIBLÉ (Laisse Jenkins et Sonar vivants) ---'
                     sh 'docker rm -f nginx_lb db_rembourse app_rembourse_1 app_rembourse_2 || true'
                     
+                    // NOUVELLE LIGNE : On supprime le vieux volume pour forcer la réinjection SQL !
+                    sh 'docker volume rm pipeline-remboursemaroc-private_db_data || true'
+                    
                     echo '--- DÉPLOIEMENT AUTOMATISÉ (BUILD + UP) ---'
-                    // --no-deps permet de ne relancer QUE les services cités, sans toucher Jenkins/Sonar
                     sh 'docker compose up -d --build --no-deps app_rembourse_1 app_rembourse_2 db_rembourse nginx_lb'
                     
                     echo '--- ATTENTE MYSQL ---'
-                    // On laisse 20 secondes à MySQL pour lire le fichier SQL en arrière-plan
                     sh 'sleep 20'
                     
-                    // PLUS AUCUN "docker exec" ICI ! Docker gère l'injection nativement.
-                    
                     echo 'Félicitations ! http://localhost:8081 est prêt !'
-                    echo '(La base a été injectée automatiquement par le volume docker-entrypoint)'
                 }
             }
         }
