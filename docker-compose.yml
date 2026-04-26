@@ -43,7 +43,7 @@ services:
       MYSQL_DATABASE: rembourse_maroc
     volumes:
       - db_data:/var/lib/mysql
-      - ./config/sql:/docker-entrypoint-initdb.d
+      - ./config/sql/01_create_database_complete.sql:/docker-entrypoint-initdb.d/01_create_database_complete.sql
     networks: [ "devops-net" ]
 
   # --- LOAD BALANCER ---

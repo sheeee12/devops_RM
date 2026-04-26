@@ -49,24 +49,20 @@ pipeline {
             steps {
                 script {
                     echo '--- NETTOYAGE CIBLÉ (Laisse Jenkins et Sonar vivants) ---'
-                    // On supprime uniquement les conteneurs de l'app par leur NOM
                     sh 'docker rm -f nginx_lb db_rembourse app_rembourse_1 app_rembourse_2 || true'
                     
-                    echo '--- LANCEMENT DE L INFRASTRUCTURE APP ---'
-                    // On lance uniquement les services de prod
+                    echo '--- DÉPLOIEMENT AUTOMATISÉ (BUILD + UP) ---'
+                    // --no-deps permet de ne relancer QUE les services cités, sans toucher Jenkins/Sonar
                     sh 'docker compose up -d --build --no-deps app_rembourse_1 app_rembourse_2 db_rembourse nginx_lb'
                     
-                    echo '--- ATTENTE DÉMARRAGE MYSQL (15s) ---'
-                    sh 'sleep 15'
+                    echo '--- ATTENTE MYSQL ---'
+                    // On laisse 20 secondes à MySQL pour lire le fichier SQL en arrière-plan
+                    sh 'sleep 20'
                     
-                    echo '--- INJECTION AUTOMATISÉE DES TABLES ---'
-                    // On force l'injection du fichier SQL dans la base
-                    sh 'docker exec -i db_rembourse mysql -u root -proot rembourse_maroc < config/sql/01_create_database_complete.sql'
+                    // PLUS AUCUN "docker exec" ICI ! Docker gère l'injection nativement.
                     
-                    echo '--- INJECTION DE L ADMINISTRATEUR ---'
-                    sh "docker exec -i db_rembourse mysql -u root -proot rembourse_maroc -e \"INSERT INTO users (nom, prenom, email, password, role) VALUES ('System', 'Admin', 'admin@rembourse.ma', '\\\$2y\\\$10\\\$86yP08P9.nO4E0m0Jp.GoeA8H8Gz8f8Z8f8Z8f8Z8f8Z8f8Z8f8Z8f8Z', 'admin');\""
-                    
-                    echo 'Succès ! http://localhost:8081 est prêt et peuplé !'
+                    echo 'Félicitations ! http://localhost:8081 est prêt !'
+                    echo '(La base a été injectée automatiquement par le volume docker-entrypoint)'
                 }
             }
         }
