@@ -1,7 +1,6 @@
 # Fichiers sensibles et configuration
 config/mail_credentials.php
 !config/mail_credentials.php.example
-config/Database.php
 !config/Database.php.example
 config/api_credentials.php
 !config/api_credentials.php.example
