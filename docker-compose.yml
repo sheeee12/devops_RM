@@ -26,12 +26,18 @@ services:
   app_rembourse_1:
     build: .
     restart: always
+    environment:
+      # <--- AJOUTE ÇA
+      - TZ=Africa/Casablanca
     networks: [ "devops-net" ]
 
   app_rembourse_2:
     build: .
     restart: always
     networks: [ "devops-net" ]
+    environment:
+      # <--- AJOUTE ÇA
+      - TZ=Africa/Casablanca
 
   # --- BASE DE DONNÉES ---
   db_rembourse:
