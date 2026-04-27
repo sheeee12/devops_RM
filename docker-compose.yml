@@ -24,6 +24,9 @@ services:
 
   # --- PRODUCTION (REDONDANCE) ---
   app_rembourse_1:
+    container_name: app_rembourse_1 # <--- JENKINS POURRA ENFIN LE TUER !
+    volumes:
+      - shared_sessions:/tmp # <--- PARTAGE DES SESSIONS
     build: .
     restart: always
     environment:
@@ -34,6 +37,9 @@ services:
   app_rembourse_2:
     build: .
     restart: always
+    container_name: app_rembourse_2 # <--- JENKINS POURRA ENFIN LE TUER !
+    volumes:
+      - shared_sessions:/tmp # <--- PARTAGE DES SESSIONS
     networks: [ "devops-net" ]
     environment:
       # <--- AJOUTE ÇA
@@ -75,4 +81,6 @@ volumes:
   sonarqube_extensions:
   sonarqube_logs:
   db_data:
+  shared_sessions:
+    # <-- DECLARATION DU DOSSIER PARTAGÉ
 
