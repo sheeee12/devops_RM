@@ -48,19 +48,32 @@ pipeline {
    stage('Phase 4 : Packaging & CD (Deploy)') {
             steps {
                 script {
-                    echo '--- NETTOYAGE CIBLÉ (Laisse Jenkins et Sonar vivants) ---'
+                    echo '--- NETTOYAGE CIBLÉ ---'
                     sh 'docker rm -f nginx_lb db_rembourse app_rembourse_1 app_rembourse_2 || true'
-                    
-                    // NOUVELLE LIGNE : On supprime le vieux volume pour forcer la réinjection SQL !
-                    sh 'docker volume rm pipeline-remboursemaroc-private_db_data || true'
+                    // On ne s'embête plus à essayer de deviner le nom du volume pour le supprimer !
                     
                     echo '--- DÉPLOIEMENT AUTOMATISÉ (BUILD + UP) ---'
                     sh 'docker compose up -d --build --no-deps app_rembourse_1 app_rembourse_2 db_rembourse nginx_lb'
                     
-                    echo '--- ATTENTE MYSQL ---'
-                    sh 'sleep 20'
+                    echo '--- ATTENTE INTELLIGENTE DE MYSQL ---'
+                    // Au lieu d'un sleep aveugle, on ping la base jusqu'à ce qu'elle réponde
+                    sh '''
+                    for i in {1..30}; do
+                        if docker exec db_rembourse mysqladmin ping -u root -proot --silent; then
+                            echo "✅ MySQL est réveillé et prêt !"
+                            break
+                        fi
+                        echo "⏳ En attente du démarrage interne de MySQL..."
+                        sleep 2
+                    done
+                    sleep 3
+                    '''
                     
-                    echo 'Félicitations ! http://localhost:8081 est prêt !'
+                    echo '--- INJECTION FORCÉE DE LA BASE DE DONNÉES ---'
+                    // L'arme absolue : on écrase tout et on recrée les tables à partir du fichier !
+                    sh 'docker exec -i db_rembourse mysql -u root -proot rembourse_maroc < config/sql/01_create_database_complete.sql'
+                    
+                    echo '🎉 Félicitations ! http://localhost:8081 est prêt et la base est remplie !'
                 }
             }
         }
