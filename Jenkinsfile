@@ -1,3 +1,5 @@
+//pipline god deploy the bdd
+
 pipeline {
     agent any
 

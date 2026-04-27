@@ -296,7 +296,7 @@ SELECT 'N''oubliez pas de configurer config/Database.php avec vos identifiants' 
 -- Email : admin@rembourse.ma | Mot de passe : admin123
 -- ============================================================================
 INSERT INTO `users` (`nom`, `prenom`, `email`, `password`, `role`) VALUES 
-('System', 'Admin', 'admin@rembourse.ma', '$2y$10$86yP08P9.nO4E0m0Jp.GoeA8H8Gz8f8Z8f8Z8f8Z8f8Z8f8Z8f8Z8', 'admin');
+('System', 'Admin', 'admin@rembourse.ma', '$2y$10$XiAISyoUvHz6OWzbKmfg1.2tNLFicXEbw6IL2KeNukjuw9lKAdD1i', 'admin');
 
 -- ============================================================================
 -- FIN DU SCRIPT
