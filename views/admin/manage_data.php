@@ -46,12 +46,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action_user'])) {
         $active_tab = 'users';
         $nom = trim($_POST['nom']);
+        $prenom = trim($_POST['prenom']);
+
         $email = trim($_POST['email']);
         $role = $_POST['role'];
+
         // Normaliser le rôle : 'employe' -> 'employee'
         if ($role === 'employe') {
             $role = 'employee';
         }
+
         $team_id = !empty($_POST['team_id']) ? $_POST['team_id'] : null;
         $id_user = !empty($_POST['user_id']) ? $_POST['user_id'] : null;
 
@@ -60,15 +64,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $db->prepare("DELETE FROM users WHERE user_id = ?")->execute([$id_user]);
                 $message = "Utilisateur supprimé.";
             } else {
-                // Création ou Édition
+                // --- Création ou Édition ---
                 if ($id_user) {
                     // UPDATE
-                    $sql = "UPDATE users SET nom=?, email=?, role=?, team_id=? WHERE user_id=?";
-                    $params = [$nom, $email, $role, $team_id, $id_user];
+                    $sql = "UPDATE users SET nom=?, prenom=?, email=?, role=?, team_id=? WHERE user_id=?";
+                    $params = [$nom, $prenom, $email, $role, $team_id, $id_user];
 
                     if (!empty($_POST['password'])) {
-                        $sql = "UPDATE users SET nom=?, email=?, role=?, team_id=?, password=? WHERE user_id=?";
-                        $params = [$nom, $email, $role, $team_id, password_hash($_POST['password'], PASSWORD_DEFAULT), $id_user];
+                        $sql = "UPDATE users SET nom=?, prenom=?, email=?, role=?, team_id=?, password=? WHERE user_id=?";
+                        $params = [$nom, $prenom, $email, $role, $team_id, password_hash($_POST['password'], PASSWORD_DEFAULT), $id_user];
                     }
                     $db->prepare($sql)->execute($params);
                     $message = "Utilisateur modifié.";
@@ -76,8 +80,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // INSERT
                     if (!empty($_POST['password'])) {
                         $pwd = password_hash($_POST['password'], PASSWORD_DEFAULT);
-                        $stmt = $db->prepare("INSERT INTO users (nom, email, password, role, team_id, avatar) VALUES (?, ?, ?, ?, ?, 'default.png')");
-                        $stmt->execute([$nom, $email, $pwd, $role, $team_id]);
+                        $stmt = $db->prepare("INSERT INTO users (nom, prenom, email, password, role, team_id, avatar) VALUES (?, ?, ?, ?, ?, ?, 'default.png')");
+                        $stmt->execute([$nom, $prenom, $email, $pwd, $role, $team_id]);
                         $message = "Utilisateur créé.";
                     } else {
                         $error = "Le mot de passe est obligatoire pour une création.";
@@ -369,9 +373,12 @@ $teams = $stmt_t->fetchAll(PDO::FETCH_ASSOC);
 
         /* LOGO ANIMATION */
         @keyframes logo-bounce {
-            0%, 100% {
+
+            0%,
+            100% {
                 transform: scale(1);
             }
+
             50% {
                 transform: scale(1.1);
                 box-shadow: 0 0 15px rgba(5, 150, 105, 0.4);
@@ -407,7 +414,7 @@ $teams = $stmt_t->fetchAll(PDO::FETCH_ASSOC);
             height: 100%;
             margin-left: 20px;
         }
-        
+
         .nav-item-link {
             color: var(--text-light);
             text-decoration: none;
@@ -758,7 +765,8 @@ $teams = $stmt_t->fetchAll(PDO::FETCH_ASSOC);
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td><span class="role-badge <?= $roleBadge ?>"><?= htmlspecialchars($roleDisplay) ?></span>
+                                            <td><span
+                                                    class="role-badge <?= $roleBadge ?>"><?= htmlspecialchars($roleDisplay) ?></span>
                                             </td>
                                             <td>
                                                 <?php if ($u['nom_team']): ?>
@@ -921,9 +929,15 @@ $teams = $stmt_t->fetchAll(PDO::FETCH_ASSOC);
                     <div class="modal-body">
                         <input type="hidden" name="user_id" id="u_id">
 
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">Nom complet</label>
-                            <input type="text" name="nom" id="u_nom" class="form-control" required>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Nom</label>
+                                <input type="text" name="nom" id="u_nom" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Prénom</label>
+                                <input type="text" name="prenom" id="u_prenom" class="form-control" required>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Email</label>
@@ -1020,6 +1034,8 @@ $teams = $stmt_t->fetchAll(PDO::FETCH_ASSOC);
             document.getElementById('modalUserTitle').innerText = "Nouvel Utilisateur";
             document.getElementById('u_id').value = "";
             document.getElementById('u_nom').value = "";
+            document.getElementById('u_prenom').value = ""; // <-- LIGNE AJOUTÉE
+
             document.getElementById('u_email').value = "";
             document.getElementById('u_role').value = "employee";
             document.getElementById('u_team').value = "";
@@ -1031,6 +1047,8 @@ $teams = $stmt_t->fetchAll(PDO::FETCH_ASSOC);
             document.getElementById('modalUserTitle').innerText = "Modifier Utilisateur";
             document.getElementById('u_id').value = u.user_id;
             document.getElementById('u_nom').value = u.nom;
+            document.getElementById('u_prenom').value = u.prenom || ""; // <-- LIGNE AJOUTÉE
+
             document.getElementById('u_email').value = u.email;
             // Normaliser le rôle : 'employe' -> 'employee'
             var roleValue = u.role;
