@@ -1,8 +1,8 @@
 version: '3.8'
+
 services:
   jenkins:
     image: jenkins/jenkins:lts
-    container_name: jenkins
     privileged: true
     user: root
     ports:
@@ -10,46 +10,52 @@ services:
     volumes:
       - ./jenkins_data:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
+    deploy:
+      restart_policy:
+        condition: any
 
   sonarqube:
     image: sonarqube:lts-community
-    container_name: sonarqube
     ports:
       - "9000:9000"
     volumes:
-      # <--- ON AJOUTE LA MÉMOIRE ICI AUSSI !
       - sonarqube_data:/opt/sonarqube/data
       - sonarqube_extensions:/opt/sonarqube/extensions
       - sonarqube_logs:/opt/sonarqube/logs
+    deploy:
+      restart_policy:
+        condition: any
 
   # --- PRODUCTION (REDONDANCE) ---
   app_rembourse_1:
-    container_name: app_rembourse_1 # <--- JENKINS POURRA ENFIN LE TUER !
-    volumes:
-      - shared_sessions:/tmp # <--- PARTAGE DES SESSIONS
+    image: mon-app-php:latest
     build: .
-    restart: always
+    volumes:
+      - shared_sessions:/tmp
     environment:
-      # <--- AJOUTE ÇA
       - TZ=Africa/Casablanca
     networks: [ "devops-net" ]
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
 
   app_rembourse_2:
+    image: mon-app-php:latest
     build: .
-    restart: always
-    container_name: app_rembourse_2 # <--- JENKINS POURRA ENFIN LE TUER !
     volumes:
-      - shared_sessions:/tmp # <--- PARTAGE DES SESSIONS
+      - shared_sessions:/tmp
     networks: [ "devops-net" ]
     environment:
-      # <--- AJOUTE ÇA
       - TZ=Africa/Casablanca
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
 
   # --- BASE DE DONNÉES ---
   db_rembourse:
     image: mysql:8.0
-    container_name: db_rembourse
-    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: rembourse_maroc
@@ -57,30 +63,29 @@ services:
       - db_data:/var/lib/mysql
       - ./config/sql/01_create_database_complete.sql:/docker-entrypoint-initdb.d/01_create_database_complete.sql
     networks: [ "devops-net" ]
+    deploy:
+      restart_policy:
+        condition: any
 
   # --- LOAD BALANCER ---
   nginx_lb:
     build:
       context: .
-      dockerfile: Dockerfile.nginx # On lui dit quel Dockerfile utiliser
+      dockerfile: Dockerfile.nginx
     image: rembourse-nginx:latest
-    container_name: nginx_lb
-    restart: always
-    ports: [ "8081:80" ]
+    ports:
+      - "8081:80"
     networks: [ "devops-net" ]
-    depends_on:
-      - app_rembourse_1
-      - app_rembourse_2
+    deploy:
+      restart_policy:
+        condition: any
 
 networks:
   devops-net:
 
 volumes:
-  # On déclare les coffres-forts
   sonarqube_data:
   sonarqube_extensions:
   sonarqube_logs:
   db_data:
   shared_sessions:
-    # <-- DECLARATION DU DOSSIER PARTAGÉ
-

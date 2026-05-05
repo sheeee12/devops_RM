@@ -47,6 +47,7 @@ pipeline {
         }
          */
         // PHASE 4 : Prochaine étape (on la laisse vide pour l'instant)
+        /*
    stage('Phase 4 : Packaging & CD (Deploy)') {
             steps {
                 script {
@@ -76,6 +77,18 @@ pipeline {
                     sh 'docker exec -i db_rembourse mysql -u root -proot rembourse_maroc < config/sql/01_create_database_complete.sql'
                     
                     echo '🎉 Félicitations ! http://localhost:8081 est prêt et la base est remplie !'
+                }
+            }
+        } */
+        stage('Phase 4 : Packaging & CD (Deploy Swarm)') {
+            steps {
+                script {
+                    echo '--- MISE A JOUR DE LA STACK SWARM ---'
+                    // Dans Swarm, on ne fait pas "rm", on redéploie simplement. 
+                    // Swarm voit le changement et met à jour les serveurs sans coupure.
+                    sh 'docker stack deploy -c docker-compose.yml ma_gestion'
+                    
+                    echo '✅ La nouvelle version est en cours de déploiement sur le cluster !'
                 }
             }
         }
