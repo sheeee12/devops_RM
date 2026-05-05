@@ -4,17 +4,21 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/../config/Database.php';
-
+// Cette fonction récupère le nom du conteneur Docker actuel
+echo "<div style='position:fixed; bottom:0; left:0; background:red; color:white; padding:5px; z-index:9999;'>";
+echo "Serveur : " . gethostname();
+echo "</div>";
 // Fonction pour charger les données utilisateur dans la session
-function loadUserSession() {
+function loadUserSession()
+{
     if (!isset($_SESSION['is_logged_in']) || $_SESSION['is_logged_in'] !== true) {
         return false;
     }
-    
+
     if (!isset($_SESSION['user_id'])) {
         return false;
     }
-    
+
     // Si les données utilisateur ne sont pas déjà en session, les charger depuis la BDD
     if (!isset($_SESSION['user'])) {
         try {
@@ -22,7 +26,7 @@ function loadUserSession() {
             $stmt = $pdo->prepare("SELECT user_id, nom, email, role, avatar, team_id, manager_id FROM users WHERE user_id = ?");
             $stmt->execute([$_SESSION['user_id']]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
-            
+
             if ($user) {
                 $_SESSION['user'] = $user;
             } else {
@@ -32,21 +36,22 @@ function loadUserSession() {
             return false;
         }
     }
-    
+
     return true;
 }
 
 // Fonction pour vérifier le rôle et rediriger si nécessaire
-function requireRole($role_requis) {
+function requireRole($role_requis)
+{
     // Charger les données utilisateur
     if (!loadUserSession()) {
         header('Location: ../../views/auth/login.php');
         exit();
     }
-    
+
     // Vérifier le rôle
     $user_role = $_SESSION['user']['role'] ?? $_SESSION['user_role'] ?? null;
-    
+
     if ($user_role !== $role_requis) {
         // Rediriger vers le bon dashboard selon le rôle
         switch ($user_role) {
@@ -65,4 +70,3 @@ function requireRole($role_requis) {
         exit();
     }
 }
-
