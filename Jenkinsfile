@@ -40,18 +40,19 @@ pipeline {
         stage('Construction de l\'image Docker') {
             steps {
                 script {
-                    echo '--- BUILD DE L\'IMAGE PHP ---'
-echo '--- RÉGLAGE DES DROITS ET CONSTRUCTION ---'
-                    // On donne tous les droits au dossier pour que Docker puisse le copier
-                    sh 'chmod -R 777 ${WORKSPACE}'
+                    echo '--- RÉGLAGE DES DROITS ET CONSTRUCTION ---'
+                    sh "chmod -R 777 ${WORKSPACE}"
                     
-                    // On donne un nom unique à l image avec le numéro du build
-                    sh 'docker build -t ${IMAGE_NAME}:latest -t ${IMAGE_NAME}:${BUILD_NUMBER} .'
-                    sh 'docker build -t rembourse-nginx:latest -f Dockerfile.nginx .'                    echo "✅ Image ${IMAGE_NAME}:latest construite (build #${BUILD_NUMBER})"
+                    echo '--- BUILD DE L\'IMAGE PHP ---'
+                    sh "docker build -t ${IMAGE_NAME}:latest -t ${IMAGE_NAME}:${BUILD_NUMBER} ."
+                    
+                    echo '--- BUILD DE L\'IMAGE NGINX ---'
+                    sh "docker build -t rembourse-nginx:latest -f Dockerfile.nginx ."
+                    
+                    echo "✅ Images construites pour le build #${BUILD_NUMBER}"
                 }
             }
         }
-
         // ÉTAPE 4 : Analyse de sécurité SonarQube (optionnel, décommenter si configuré)
         /*
         stage('Audit de Sécurité (SonarQube)') {
@@ -79,24 +80,18 @@ echo '--- RÉGLAGE DES DROITS ET CONSTRUCTION ---'
                     echo '--- VÉRIFICATION DU MODE SWARM ---'
                     sh '''
                         if [ "$(docker info --format "{{.Swarm.LocalNodeState}}")" != "active" ]; then
-                            echo "Activation du Swarm..."
                             docker swarm init --advertise-addr 127.0.0.1
-                        else
-                            echo "✅ Swarm déjà actif."
                         fi
                     '''
 
-                    echo '--- DÉPLOIEMENT DE LA STACK ---'
-                    // Swarm détecte que l'image a changé et fait un rolling update sans coupure
-                   // On met à jour uniquement les images de l'App et de Nginx
-                    // Swarm va faire un "Rolling Update" (un par un) sans rien couper !
-                     echo '--- MISE A JOUR DES SERVICES ---'
-                    // TRÈS IMPORTANT : On force Swarm à utiliser l image qu on vient de créer
-                    sh 'docker service update --image ${IMAGE_NAME}:${BUILD_NUMBER} --force ma_gestion_app_rembourse_1'
-                    sh 'docker service update --image ${IMAGE_NAME}:${BUILD_NUMBER} --force ma_gestion_app_rembourse_2'
-                    sh 'docker service update --image rembourse-nginx:latest --force ma_gestion_nginx_lb'
+                    echo '--- MISE A JOUR DES SERVICES ---'
+                    // On utilise les doubles guillemets pour injecter le BUILD_NUMBER
+                    sh "docker service update --image ${IMAGE_NAME}:${BUILD_NUMBER} --force ma_gestion_app_rembourse_1"
+                    sh "docker service update --image ${IMAGE_NAME}:${BUILD_NUMBER} --force ma_gestion_app_rembourse_2"
+                    sh "docker service update --image rembourse-nginx:latest --force ma_gestion_nginx_lb"
 
-                    echo '🎉 Déploiement terminé avec succès !'   }
+                    echo '🎉 Déploiement Swarm terminé avec succès !'
+                }
             }
         }
     }
