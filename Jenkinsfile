@@ -13,15 +13,16 @@ pipeline {
             steps {
                 script {
                     echo '--- INSTALLATION DES LIBRAIRIES COMPOSER ---'
-                    // On monte le workspace directement, sans dépendre d'un nom de conteneur
                     sh '''
                         docker run --rm \
+                            -u root \
                             -v "${WORKSPACE}:/app" \
                             -w /app \
                             composer:latest \
                             composer install --no-interaction --prefer-dist --optimize-autoloader
                     '''
-                    echo '✅ Dossier vendor/ créé avec succès.'
+                    // On remet les droits au cas où
+                    sh 'chown -R root:root ${WORKSPACE}'
                 }
             }
         }

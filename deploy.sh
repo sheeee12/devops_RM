@@ -32,3 +32,12 @@ echo "  Health check: http://localhost:8081/health"
 echo ""
 echo "⏳ Attendre 20-30 secondes que MySQL démarre..."
 echo "-------------------------------------------------------"
+
+echo "🛠️  Installation du client Docker dans Jenkins..."
+# On attend que Jenkins soit allumé
+sleep 10
+# On installe le client Docker à l'intérieur du conteneur Jenkins de Swarm
+JENKINS_ID=$(docker ps -q -f name=ma_gestion_jenkins)
+docker exec -u root $JENKINS_ID apt-get update
+docker exec -u root $JENKINS_ID apt-get install -y docker.io
+echo "✅ Jenkins est maintenant capable de lancer des conteneurs !"
