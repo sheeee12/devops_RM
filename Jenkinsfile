@@ -41,8 +41,13 @@ pipeline {
             steps {
                 script {
                     echo '--- BUILD DE L\'IMAGE PHP ---'
+echo '--- RÉGLAGE DES DROITS ET CONSTRUCTION ---'
+                    // On donne tous les droits au dossier pour que Docker puisse le copier
+                    sh 'chmod -R 777 ${WORKSPACE}'
+                    
+                    // On donne un nom unique à l image avec le numéro du build
                     sh 'docker build -t ${IMAGE_NAME}:latest -t ${IMAGE_NAME}:${BUILD_NUMBER} .'
-                    echo "✅ Image ${IMAGE_NAME}:latest construite (build #${BUILD_NUMBER})"
+                    sh 'docker build -t rembourse-nginx:latest -f Dockerfile.nginx .'                    echo "✅ Image ${IMAGE_NAME}:latest construite (build #${BUILD_NUMBER})"
                 }
             }
         }
@@ -85,11 +90,13 @@ pipeline {
                     // Swarm détecte que l'image a changé et fait un rolling update sans coupure
                    // On met à jour uniquement les images de l'App et de Nginx
                     // Swarm va faire un "Rolling Update" (un par un) sans rien couper !
-                    sh 'docker service update --image ${IMAGE_NAME}:latest ma_gestion_app_rembourse_1'
-                    sh 'docker service update --image ${IMAGE_NAME}:latest ma_gestion_app_rembourse_2'
-                    sh 'docker service update --image rembourse-nginx:latest ma_gestion_nginx_lb'
+                     echo '--- MISE A JOUR DES SERVICES ---'
+                    // TRÈS IMPORTANT : On force Swarm à utiliser l image qu on vient de créer
+                    sh 'docker service update --image ${IMAGE_NAME}:${BUILD_NUMBER} --force ma_gestion_app_rembourse_1'
+                    sh 'docker service update --image ${IMAGE_NAME}:${BUILD_NUMBER} --force ma_gestion_app_rembourse_2'
+                    sh 'docker service update --image rembourse-nginx:latest --force ma_gestion_nginx_lb'
 
-                    echo '🎉 Mise à jour terminée ! Jenkins et la DB sont restés stables.'     }
+                    echo '🎉 Déploiement terminé avec succès !'   }
             }
         }
     }
