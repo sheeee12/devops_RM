@@ -41,3 +41,6 @@ JENKINS_ID=$(docker ps -q -f name=ma_gestion_jenkins)
 docker exec -u root $JENKINS_ID apt-get update
 docker exec -u root $JENKINS_ID apt-get install -y docker.io
 echo "✅ Jenkins est maintenant capable de lancer des conteneurs !"
+# ... (après ton installation de docker.io)
+docker exec -u root $JENKINS_ID chmod 666 /var/run/docker.sock
+echo "✅ Permissions Docker accordées à Jenkins !"
