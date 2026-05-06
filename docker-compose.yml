@@ -119,7 +119,19 @@ services:
     deploy:
       restart_policy:
         condition: any
-
+  # --- MONITORING (SURVEILLANCE) ---
+  nagios:
+    image: jasonrivers/nagios:latest
+    ports:
+      - "8085:80" # On y accèdera sur le port 8085
+    networks:
+      - devops-net
+    environment:
+      - NAGIOSADMIN_USER=admin # Login Nagios
+      - NAGIOSADMIN_PASS=admin # Password Nagios
+    deploy:
+      restart_policy:
+        condition: any
 # =====================================================================
 # RÉSEAU UNIQUE : tous les services communiquent entre eux via ce réseau
 # =====================================================================
