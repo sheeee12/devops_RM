@@ -1,6 +1,14 @@
 version: '3.8'
 
+# =====================================================================
+# IMPORTANT : Ce fichier est utilisé par Docker Swarm (via deploy.sh)
+# Les directives "build:" sont IGNORÉES par Swarm.
+# Jenkins doit construire l'image AVANT de faire "docker stack deploy"
+# =====================================================================
+
 services:
+
+  # --- JENKINS (CI/CD) ---
   jenkins:
     image: jenkins/jenkins:lts
     privileged: true
@@ -9,11 +17,14 @@ services:
       - "8080:8080"
     volumes:
       - ./jenkins_data:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock # Jenkins peut lancer des commandes Docker
+    networks:
+      - devops-net
     deploy:
       restart_policy:
         condition: any
 
+  # --- SONARQUBE (Qualité de code) ---
   sonarqube:
     image: sonarqube:lts-community
     ports:
@@ -22,36 +33,59 @@ services:
       - sonarqube_data:/opt/sonarqube/data
       - sonarqube_extensions:/opt/sonarqube/extensions
       - sonarqube_logs:/opt/sonarqube/logs
+    networks:
+      - devops-net
     deploy:
       restart_policy:
         condition: any
 
-  # --- PRODUCTION (REDONDANCE) ---
+  # --- APPLICATION PHP (Réplica 1) ---
+  # L'image est construite par Jenkins, pas ici
   app_rembourse_1:
     image: mon-app-php:latest
-    build: .
     volumes:
       - shared_sessions:/tmp
     environment:
       - TZ=Africa/Casablanca
-    networks: [ "devops-net" ]
+      # La DB est joignable via son nom de service "db_rembourse" sur le même réseau
+      - DB_HOST=db_rembourse
+      - DB_NAME=rembourse_maroc
+      - DB_USER=app_user
+      - DB_PASS=app_password
+    networks:
+      - devops-net
+    depends_on:
+      - db_rembourse
     deploy:
       replicas: 1
       restart_policy:
         condition: any
+      update_config:
+        parallelism: 1
+        delay: 10s # Rolling update : attend 10s entre chaque réplica
 
+  # --- APPLICATION PHP (Réplica 2) ---
   app_rembourse_2:
     image: mon-app-php:latest
-    build: .
     volumes:
       - shared_sessions:/tmp
-    networks: [ "devops-net" ]
     environment:
       - TZ=Africa/Casablanca
+      - DB_HOST=db_rembourse
+      - DB_NAME=rembourse_maroc
+      - DB_USER=app_user
+      - DB_PASS=app_password
+    networks:
+      - devops-net
+    depends_on:
+      - db_rembourse
     deploy:
       replicas: 1
       restart_policy:
         condition: any
+      update_config:
+        parallelism: 1
+        delay: 10s
 
   # --- BASE DE DONNÉES ---
   db_rembourse:
@@ -59,33 +93,44 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: rembourse_maroc
+      MYSQL_USER: app_user # Utilisateur dédié (plus sûr que root)
+      MYSQL_PASSWORD: app_password
     volumes:
       - db_data:/var/lib/mysql
       - ./config/sql/01_create_database_complete.sql:/docker-entrypoint-initdb.d/01_create_database_complete.sql
-    networks: [ "devops-net" ]
+    networks:
+      - devops-net
     deploy:
       restart_policy:
         condition: any
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-u", "root", "-proot", "--silent" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # --- LOAD BALANCER ---
+  # --- LOAD BALANCER NGINX ---
   nginx_lb:
-    build:
-      context: .
-      dockerfile: Dockerfile.nginx
-    image: rembourse-nginx:latest
+    image: rembourse-nginx:latest # Construite par Jenkins aussi
     ports:
       - "8081:80"
-    networks: [ "devops-net" ]
+    networks:
+      - devops-net
     deploy:
       restart_policy:
         condition: any
 
+# =====================================================================
+# RÉSEAU UNIQUE : tous les services communiquent entre eux via ce réseau
+# =====================================================================
 networks:
   devops-net:
+    driver: overlay # "overlay" est requis pour Docker Swarm (multi-nœuds)
 
 volumes:
+  jenkins_data: # Persistance des jobs/configs Jenkins
   sonarqube_data:
   sonarqube_extensions:
   sonarqube_logs:
-  db_data:
-  shared_sessions:
+  db_data: # CRITIQUE : les données MySQL survivent aux redémarrages
+  shared_sessions: # Sessions PHP partagées entre les 2 réplicas

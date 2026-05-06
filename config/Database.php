@@ -8,12 +8,11 @@ class Database
     private function __construct()
     {
         // --- CONFIGURATION DOCKER ---
-        $host = "db_rembourse";    // Nom du service dans le YAML
-        $dbname = "rembourse_maroc"; // Nom défini dans MYSQL_DATABASE
-        $user = "root";
-        $pass = "root";            // Défini dans MYSQL_ROOT_PASSWORD
-        // ----------------------------
-
+        // Il lit les variables du docker-compose, sinon il prend des valeurs par défaut
+        $host = getenv('DB_HOST') ?: "db_rembourse";
+        $dbname = getenv('DB_NAME') ?: "rembourse_maroc";
+        $user = getenv('DB_USER') ?: "root";
+        $pass = getenv('DB_PASS') ?: "root";
         try {
             $this->pdo = new PDO(
                 "mysql:host=$host;dbname=$dbname;charset=utf8mb4",

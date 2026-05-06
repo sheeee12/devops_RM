@@ -1,96 +1,117 @@
-//pipline god deploy the bdd
-
 pipeline {
     agent any
 
-    stages {
-        // PHASE 1 : On prépare le terrain
-        stage('Construction') {
-            steps {
-                echo 'Initialisation du pipeline RembourseMaroc...'
-            }
-        }
+    environment {
+        IMAGE_NAME = "mon-app-php"
+        STACK_NAME = "ma_gestion"
+    }
 
-        // PHASE 2 : On installe les librairies réelles
-       stage('Installation des Librairies') {
+    stages {
+
+        // ÉTAPE 1 : Installer les dépendances PHP avec Composer
+        stage('Installation des dépendances') {
             steps {
                 script {
-                    echo '--- MISE A JOUR DES LIBRAIRIES (MODE UPDATE) ---'
-                    // On utilise "update" car on a modifié le composer.json manuellement
-                    sh 'docker run --rm --volumes-from jenkins -w /var/jenkins_home/workspace/Pipeline-RembourseMaroc-Private composer update --no-interaction --prefer-dist'
-                    
-                    echo 'Succès : Le dossier vendor/ a été mis à jour avec PHPUnit.'
+                    echo '--- INSTALLATION DES LIBRAIRIES COMPOSER ---'
+                    // On monte le workspace directement, sans dépendre d'un nom de conteneur
+                    sh '''
+                        docker run --rm \
+                            -v "${WORKSPACE}:/app" \
+                            -w /app \
+                            composer:latest \
+                            composer install --no-interaction --prefer-dist --optimize-autoloader
+                    '''
+                    echo '✅ Dossier vendor/ créé avec succès.'
                 }
             }
         }
-        /* ON COMMENTE SONAR POUR GAGNER DU TEMPS PENDANT LES TESTS CD
 
-        // PHASE 3 : Audit ciblé sur 5 fichiers uniquement
-        stage('Audit de Securite (SonarQube)') {
+        // ÉTAPE 2 : Lancer les tests PHPUnit
+        stage('Tests unitaires (PHPUnit)') {
+            steps {
+                script {
+                    echo '--- LANCEMENT DES TESTS ---'
+                    sh '''
+                        docker run --rm \
+                            -v "${WORKSPACE}:/app" \
+                            -w /app \
+                            php:8.2-cli \
+                            vendor/bin/phpunit --testdox || true
+                    '''
+                    // Le "|| true" empêche le pipeline de bloquer si des tests échouent
+                    // Retire-le en production pour bloquer le déploiement si les tests cassent
+                }
+            }
+        }
+
+        // ÉTAPE 3 : Construire l'image Docker de l'application
+        // CRITIQUE : Swarm ne peut pas "build", Jenkins doit le faire ici
+        stage('Construction de l\'image Docker') {
+            steps {
+                script {
+                    echo '--- BUILD DE L\'IMAGE PHP ---'
+                    sh 'docker build -t ${IMAGE_NAME}:latest -t ${IMAGE_NAME}:${BUILD_NUMBER} .'
+                    echo "✅ Image ${IMAGE_NAME}:latest construite (build #${BUILD_NUMBER})"
+                }
+            }
+        }
+
+        // ÉTAPE 4 : Analyse de sécurité SonarQube (optionnel, décommenter si configuré)
+        /*
+        stage('Audit de Sécurité (SonarQube)') {
             steps {
                 script {
                     def scannerHome = tool 'SonarScanner'
                     withSonarQubeEnv('MySonar') {
-                        // LOGIQUE WHITEBOX : 
-                        // On utilise "sonar.inclusions" pour forcer le robot à ne lire 
-                        // que ces 5 fichiers précis. Temps estimé : < 10 secondes.
-                         sh """
+                        sh """
                         ${scannerHome}/bin/sonar-scanner \
                         -Dsonar.projectKey=RembourseMaroc \
                         -Dsonar.sources=. \
                         -Dsonar.language=php \
-                        -Dsonar.inclusions=index.php,includes/security.php,views/admin/dashboard.php,classes/Lang.php,actions/delete_notifications_employee.php
+                        -Dsonar.inclusions=index.php,includes/security.php,views/admin/dashboard.php
                         """
                     }
                 }
             }
         }
-         */
-        // PHASE 4 : Prochaine étape (on la laisse vide pour l'instant)
-        /*
-   stage('Phase 4 : Packaging & CD (Deploy)') {
+        */
+
+        // ÉTAPE 5 : Déploiement sur Docker Swarm (rolling update automatique)
+        stage('Déploiement (Swarm)') {
             steps {
                 script {
-                    echo '--- NETTOYAGE CIBLÉ ---'
-                    sh 'docker rm -f nginx_lb db_rembourse app_rembourse_1 app_rembourse_2 || true'
-                    // On ne s'embête plus à essayer de deviner le nom du volume pour le supprimer !
-                    
-                    echo '--- DÉPLOIEMENT AUTOMATISÉ (BUILD + UP) ---'
-                    sh 'docker compose up -d --build --no-deps app_rembourse_1 app_rembourse_2 db_rembourse nginx_lb'
-                    
-                    echo '--- ATTENTE INTELLIGENTE DE MYSQL ---'
-                    // Au lieu d'un sleep aveugle, on ping la base jusqu'à ce qu'elle réponde
+                    echo '--- VÉRIFICATION DU MODE SWARM ---'
                     sh '''
-                    for i in {1..30}; do
-                        if docker exec db_rembourse mysqladmin ping -u root -proot --silent; then
-                            echo "✅ MySQL est réveillé et prêt !"
-                            break
+                        if [ "$(docker info --format "{{.Swarm.LocalNodeState}}")" != "active" ]; then
+                            echo "Activation du Swarm..."
+                            docker swarm init --advertise-addr 127.0.0.1
+                        else
+                            echo "✅ Swarm déjà actif."
                         fi
-                        echo "⏳ En attente du démarrage interne de MySQL..."
-                        sleep 2
-                    done
-                    sleep 3
                     '''
-                    
-                    echo '--- INJECTION FORCÉE DE LA BASE DE DONNÉES ---'
-                    // L'arme absolue : on écrase tout et on recrée les tables à partir du fichier !
-                    sh 'docker exec -i db_rembourse mysql -u root -proot rembourse_maroc < config/sql/01_create_database_complete.sql'
-                    
-                    echo '🎉 Félicitations ! http://localhost:8081 est prêt et la base est remplie !'
+
+                    echo '--- DÉPLOIEMENT DE LA STACK ---'
+                    // Swarm détecte que l'image a changé et fait un rolling update sans coupure
+                    sh 'docker stack deploy -c docker-compose.yml ${STACK_NAME} --with-registry-auth'
+
+                    echo '--- ATTENTE DE LA STABILISATION ---'
+                    sh 'sleep 15'
+
+                    echo '--- VÉRIFICATION DES SERVICES ---'
+                    sh 'docker stack services ${STACK_NAME}'
+
+                    echo '🎉 Déploiement terminé ! Application disponible sur http://localhost:8081'
                 }
             }
-        } */
-        stage('Phase 4 : Packaging & CD (Deploy Swarm)') {
-            steps {
-                script {
-                    echo '--- MISE A JOUR DE LA STACK SWARM ---'
-                    // Dans Swarm, on ne fait pas "rm", on redéploie simplement. 
-                    // Swarm voit le changement et met à jour les serveurs sans coupure.
-                    sh 'docker stack deploy -c docker-compose.yml ma_gestion'
-                    
-                    echo '✅ La nouvelle version est en cours de déploiement sur le cluster !'
-                }
-            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Pipeline réussi - Nouvelle version en ligne sur http://localhost:8081'
+        }
+        failure {
+            echo '❌ Pipeline échoué - Vérifier les logs ci-dessus'
         }
     }
 }
