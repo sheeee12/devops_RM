@@ -1,5 +1,5 @@
 <?php
-
+//vers stable
 class Database
 {
     private static $instance = null;
