@@ -139,9 +139,12 @@ function getStatusBadge($status)
 
         /* LOGO ANIMATION */
         @keyframes logo-bounce {
-            0%, 100% {
+
+            0%,
+            100% {
                 transform: scale(1);
             }
+
             50% {
                 transform: scale(1.1);
                 box-shadow: 0 0 15px rgba(5, 150, 105, 0.4);
@@ -164,7 +167,7 @@ function getStatusBadge($status)
 
         .brand-logo:hover {
             animation: logo-bounce 1s infinite;
-            background-color: #047857;
+            background-color: #ff0000;
         }
 
         .app-header .d-flex span {
@@ -201,7 +204,7 @@ function getStatusBadge($status)
             height: 100%;
             margin-left: 20px;
         }
-        
+
         .nav-item-link {
             color: var(--text-light);
             text-decoration: none;
@@ -226,14 +229,14 @@ function getStatusBadge($status)
             border-bottom-color: var(--primary);
             background: linear-gradient(to bottom, transparent 90%, rgba(5, 150, 105, 0.1));
         }
-        
+
         /* --- PROFILE --- */
         .user-area {
             display: flex;
             align-items: center;
             gap: 12px;
         }
-        
+
         .avatar-circle {
             width: 36px;
             height: 36px;
@@ -463,7 +466,7 @@ function getStatusBadge($status)
 
         <div class="d-flex align-items-center gap-3">
             <?= renderNotificationBell($notifications) ?>
-            
+
             <div class="text-end d-none d-sm-block">
                 <div class="fw-bold small"><?= htmlspecialchars($user_name) ?></div>
                 <div class="text-muted" style="font-size: 0.7rem;"><?= htmlspecialchars($role_display) ?></div>
@@ -577,22 +580,22 @@ function getStatusBadge($status)
                 <h5 class="fw-bold m-0">Opérations Récentes</h5>
                 <a href="mes_frais.php" class="text-decoration-none fw-bold small text-primary">Tout voir <i
                         class="bi bi-arrow-right ms-1"></i></a>
-                    </div>
+            </div>
 
             <div class="table-responsive table-3d-container">
                 <table class="table-3d">
                     <thead>
-                                <tr>
+                        <tr>
                             <th>Date & Réf.</th>
-                                    <th>Intitulé de la mission</th>
-                                    <th>Montant Total</th>
-                                    <th>État actuel</th>
+                            <th>Intitulé de la mission</th>
+                            <th>Montant Total</th>
+                            <th>État actuel</th>
                             <th class="text-end">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (empty($recent_demandes)): ?>
-                                    <tr>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($recent_demandes)): ?>
+                            <tr>
                                 <td colspan="5" class="text-center py-5">
                                     <div class="py-4">
                                         <i class="bi bi-inbox fs-1 text-light mb-3 d-block"
@@ -600,13 +603,13 @@ function getStatusBadge($status)
                                         <span class="text-muted fw-medium">Aucune activité récente.</span>
                                     </div>
                                 </td>
-                                    </tr>
-                                <?php else: ?>
-                                    <?php foreach ($recent_demandes as $d): ?>
-                                        <tr>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($recent_demandes as $d): ?>
+                                <tr>
                                     <td>
-                                                <div class="fw-bold text-dark"><?= date('d/m/Y', strtotime($d['date_dep'])) ?></div>
-                                                <div class="small text-muted font-monospace mt-1">
+                                        <div class="fw-bold text-dark"><?= date('d/m/Y', strtotime($d['date_dep'])) ?></div>
+                                        <div class="small text-muted font-monospace mt-1">
                                             #<?= str_pad($d['id_dem'], 4, '0', STR_PAD_LEFT) ?></div>
                                     </td>
                                     <td>
@@ -615,28 +618,28 @@ function getStatusBadge($status)
                                     <td>
                                         <span class="fw-bold fs-6 text-dark"><?= number_format($d['montant_total'], 2) ?></span>
                                         <span class="text-muted small">DH</span>
-                                            </td>
-                                            <td>
+                                    </td>
+                                    <td>
                                         <?= getStatusBadge($d['status']) ?>
-                                            </td>
+                                    </td>
                                     <td class="text-end">
                                         <a href="details_demande.php?id=<?= $d['id_dem'] ?>" class="btn-icon-circle shadow-sm"
                                             title="Voir les détails">
                                             <i class="bi bi-chevron-right"></i>
-                                                </a>
-                                                <?php if (in_array($d['status'], ['Brouillon', 'Rejete'])): ?>
-                                                    <a href="../../actions/delete_demande.php?id=<?= $d['id_dem'] ?>&source=dashboard"
+                                        </a>
+                                        <?php if (in_array($d['status'], ['Brouillon', 'Rejete'])): ?>
+                                            <a href="../../actions/delete_demande.php?id=<?= $d['id_dem'] ?>&source=dashboard"
                                                 class="btn-icon-circle danger shadow-sm ms-1"
-                                                        onclick="return confirm('Supprimer définitivement ?');" title="Supprimer">
-                                                        <i class="bi bi-trash"></i>
-                                                    </a>
-                                                <?php endif; ?>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
+                                                onclick="return confirm('Supprimer définitivement ?');" title="Supprimer">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -649,7 +652,7 @@ function getStatusBadge($status)
     <script>
         // Configuration Globale Chart.js
         Chart.defaults.font.family = "'Inter', sans-serif";
-        
+
         // Détecter le mode sombre
         const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
         Chart.defaults.color = isDarkMode ? '#94a3b8' : '#94a3b8';
@@ -714,7 +717,7 @@ function getStatusBadge($status)
         const ctxPie = document.getElementById('doughnutChart').getContext('2d');
         const doughnutBorderColor = isDarkMode ? '#1e293b' : '#ffffff';
         const doughnutLegendColor = isDarkMode ? '#f1f5f9' : '#1e293b';
-        
+
         new Chart(ctxPie, {
             type: 'doughnut',
             data: {
