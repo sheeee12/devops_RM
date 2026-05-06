@@ -9,10 +9,10 @@ class Database
     {
         // --- CONFIGURATION DOCKER ---
         // Il lit les variables du docker-compose, sinon il prend des valeurs par défaut
-        $host = getenv('DB_HOST') ?: "db_rembourse";
-        $dbname = getenv('DB_NAME') ?: "rembourse_maroc";
-        $user = getenv('DB_USER') ?: "root";
-        $pass = getenv('DB_PASS') ?: "root";
+        $host = "db_rembourse";
+        $dbname = "rembourse_maroc";
+        $user = "root";
+        $pass = "root";
         try {
             $this->pdo = new PDO(
                 "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
