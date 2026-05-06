@@ -7,22 +7,17 @@ pipeline {
     }
 
     stages {
-
-        // ÉTAPE 1 : Installer les dépendances PHP avec Composer
+// ÉTAPE 1 : Installation des dépendances
         stage('Installation des dépendances') {
             steps {
                 script {
                     echo '--- INSTALLATION DES LIBRAIRIES COMPOSER ---'
                     sh '''
-                        docker run --rm \
-                            -u root \
-                            -v "${WORKSPACE}:/app" \
-                            -w /app \
-                            composer:latest \
-                            composer install --no-interaction --prefer-dist --optimize-autoloader
+                        # On récupère l'ID dynamique du Jenkins actuel
+                        JENKINS_ID=$(docker ps -q -f name=ma_gestion_jenkins)
+                        # On lance Composer en partageant les disques de Jenkins
+                        docker run --rm --volumes-from $JENKINS_ID -w ${WORKSPACE} composer:latest composer install --no-interaction --prefer-dist
                     '''
-                    // On remet les droits au cas où
-                    sh 'chown -R root:root ${WORKSPACE}'
                 }
             }
         }
@@ -33,14 +28,9 @@ pipeline {
                 script {
                     echo '--- LANCEMENT DES TESTS ---'
                     sh '''
-                        docker run --rm \
-                            -v "${WORKSPACE}:/app" \
-                            -w /app \
-                            php:8.2-cli \
-                            vendor/bin/phpunit --testdox || true
+                        JENKINS_ID=$(docker ps -q -f name=ma_gestion_jenkins)
+                        docker run --rm --volumes-from $JENKINS_ID -w ${WORKSPACE} php:8.2-cli php vendor/bin/phpunit --testdox || true
                     '''
-                    // Le "|| true" empêche le pipeline de bloquer si des tests échouent
-                    // Retire-le en production pour bloquer le déploiement si les tests cassent
                 }
             }
         }
