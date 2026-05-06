@@ -83,16 +83,13 @@ pipeline {
 
                     echo '--- DÉPLOIEMENT DE LA STACK ---'
                     // Swarm détecte que l'image a changé et fait un rolling update sans coupure
-                    sh 'docker stack deploy -c docker-compose.yml ${STACK_NAME} --with-registry-auth'
+                   // On met à jour uniquement les images de l'App et de Nginx
+                    // Swarm va faire un "Rolling Update" (un par un) sans rien couper !
+                    sh 'docker service update --image ${IMAGE_NAME}:latest ma_gestion_app_rembourse_1'
+                    sh 'docker service update --image ${IMAGE_NAME}:latest ma_gestion_app_rembourse_2'
+                    sh 'docker service update --image rembourse-nginx:latest ma_gestion_nginx_lb'
 
-                    echo '--- ATTENTE DE LA STABILISATION ---'
-                    sh 'sleep 15'
-
-                    echo '--- VÉRIFICATION DES SERVICES ---'
-                    sh 'docker stack services ${STACK_NAME}'
-
-                    echo '🎉 Déploiement terminé ! Application disponible sur http://localhost:8081'
-                }
+                    echo '🎉 Mise à jour terminée ! Jenkins et la DB sont restés stables.'     }
             }
         }
     }
