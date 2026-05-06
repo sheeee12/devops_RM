@@ -16,7 +16,7 @@ pipeline {
                         # On récupère l'ID dynamique du Jenkins actuel
                         JENKINS_ID=$(docker ps -q -f name=ma_gestion_jenkins)
                         # On lance Composer en partageant les disques de Jenkins
-                        docker run --rm --volumes-from $JENKINS_ID -w ${WORKSPACE} composer:latest composer install --no-interaction --prefer-dist
+                        docker run --rm --volumes-from $JENKINS_ID -w ${WORKSPACE} composer:latest composer update --no-interaction --prefer-dist
                     '''
                 }
             }
