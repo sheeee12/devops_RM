@@ -127,7 +127,7 @@ services:
     networks:
       - devops-net
     environment:
-      - NAGIOSADMIN_USER=admin # Login Nagios
+      - NAGIOSADMIN_USER=nagiosadmin # Login Nagios
       - NAGIOSADMIN_PASS=admin # Password Nagios
     volumes:
       # ON INJECTE NOTRE CONFIG DANS LE DOSSIER D'AUTO-CHARGEMENT DE NAGIOS
