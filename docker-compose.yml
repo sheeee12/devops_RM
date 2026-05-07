@@ -129,6 +129,9 @@ services:
     environment:
       - NAGIOSADMIN_USER=admin # Login Nagios
       - NAGIOSADMIN_PASS=admin # Password Nagios
+    volumes:
+      # ON INJECTE NOTRE CONFIG DANS LE DOSSIER D'AUTO-CHARGEMENT DE NAGIOS
+      - ./config/nagios/services.cfg:/opt/nagios/etc/conf.d/services.cfg
     deploy:
       restart_policy:
         condition: any
