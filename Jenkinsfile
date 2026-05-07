@@ -91,7 +91,7 @@ pipeline {
                     sh "docker service update --image rembourse-nginx:latest --force ma_gestion_nginx_lb"
  // ON AJOUTE NAGIOS ICI (Au cas où on change sa config un jour)
                     sh "docker service update --image jasonrivers/nagios:latest --force ma_gestion_nagios"
-
+                    sh "docker service update --force ma_gestion_nagios"
                     echo '🎉 Déploiement Swarm terminé avec succès !'
                 }
             }
