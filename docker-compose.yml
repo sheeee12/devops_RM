@@ -131,7 +131,7 @@ services:
       - NAGIOSADMIN_PASS=admin # Password Nagios
     volumes:
       # ON INJECTE NOTRE CONFIG DANS LE DOSSIER D'AUTO-CHARGEMENT DE NAGIOS
-      - ./config/nagios/services.cfg:/opt/nagios/etc/objects/services.cfg
+      - ./config/nagios/services.cfg:/opt/nagios/etc/objects/printer.cfg
     deploy:
       restart_policy:
         condition: any
