@@ -1,4 +1,5 @@
 <?php
-// Jenkins vérifiera si ce code est 200
+// On simule une erreur 500 (Panne serveur)
 http_response_code(500);
-echo "OK";
+echo "CRITICAL ERROR";
+exit();
