@@ -1,5 +1,4 @@
 <?php
-// On simule une erreur 500 (Panne serveur)
-http_response_code(500);
-echo "CRITICAL ERROR";
-exit();
+// On provoque une erreur de syntaxe volontaire (pas de point-virgule, texte n'importe où)
+Ceci est une erreur fatale qui va casser le moteur PHP
+echo $variable_qui_n_existe_pas -> methode_inexistante();
