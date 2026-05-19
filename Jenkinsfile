@@ -49,17 +49,23 @@ pipeline {
         // ================================================================
         // ÉTAPE 2 : Tests unitaires PHPUnit
         // ================================================================
+        // ================================================================
+        // ÉTAPE 2 : Tests unitaires PHPUnit (MISE À JOUR)
+        // ================================================================
         stage('Tests unitaires (PHPUnit)') {
             steps {
                 script {
-                    echo '--- LANCEMENT DES TESTS ---'
+                    echo '--- LANCEMENT DES TESTS SUR LE DOSSIER tests/ ---'
                     sh '''
                         JENKINS_ID=$(docker ps -q -f name=${STACK_NAME}_jenkins)
+                        
+                        # 1. On lance phpunit sur le dossier "tests"
+                        # 2. On ENLÈVE le "|| true" pour que le build échoue si un test rate
                         docker run --rm \
                             --volumes-from $JENKINS_ID \
                             -w ${WORKSPACE} \
                             php:8.2-cli \
-                            php vendor/bin/phpunit --testdox || true
+                            php vendor/bin/phpunit tests --testdox
                     '''
                 }
             }
@@ -146,41 +152,41 @@ pipeline {
         // que l'app répond bien. Si elle ne répond pas → rollback auto.
         // ================================================================
        stage('Vérification de santé (Health Check)') {
-    steps {
-        script {
-            echo '--- ATTENTE STABILISATION SWARM (20s) ---'
-            sleep 20
+            steps {
+                script {
+                    echo '--- ATTENTE STABILISATION SWARM (20s) ---'
+                    sleep 20
 
-            echo '--- TEST HTTP ET CONTENU ---'
-            sh '''
-                # On récupère le code HTTP et le contenu en une seule commande
-                # --silent : pas de barre de progression
-                # --write-out : affiche le code à la fin
-                OUTPUT=$(curl -s -w "|%{http_code}" http://nginx_lb/health.php)
-                
-                CONTENT=$(echo "$OUTPUT" | cut -d'|' -f1)
-                HTTP_CODE=$(echo "$OUTPUT" | cut -d'|' -f2)
+                    echo '--- TEST HTTP ET CONTENU ---'
+                    sh '''
+                        # 1. On récupère UNIQUEMENT le code HTTP
+                        HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://nginx_lb/health.php)
+                        
+                        # 2. On récupère UNIQUEMENT le contenu texte
+                        CONTENT=$(curl -s http://nginx_lb/health.php)
 
-                echo "Code HTTP : $HTTP_CODE"
-                echo "Contenu : $CONTENT"
+                        echo "Code HTTP reçu : $HTTP_CODE"
+                        echo "Contenu reçu   : $CONTENT"
 
-                # Condition de succès : Code 200 ET contenu "OK"
-                if [ "$HTTP_CODE" != "200" ] || [ "$CONTENT" != "OK" ]; then
-                    echo "⚠️ ERREUR DÉTECTÉE (Code: $HTTP_CODE / Réponse: $CONTENT)"
-                    echo "🔄 ROLLBACK AUTOMATIQUE..."
-                    
-                    docker service rollback ${STACK_NAME}_app_rembourse_1
-                    docker service rollback ${STACK_NAME}_app_rembourse_2
-                    docker service rollback ${STACK_NAME}_nginx_lb
-                    
-                    exit 1
-                fi
-                
-                echo "✅ Succès : L'application répond 200 OK"
-            '''
+                        # 3. VERIFICATION :
+                        # On vérifie si le code est 200 
+                        # ET on vérifie si le mot "OK" est présent dans le texte (avec grep)
+                        if [ "$HTTP_CODE" != "200" ] || ! echo "$CONTENT" | grep -q "OK"; then
+                            echo "⚠️ ERREUR DÉTECTÉE ! (Code: $HTTP_CODE / Contenu incorrect)"
+                            echo "🔄 ROLLBACK AUTOMATIQUE EN COURS..."
+                            
+                            docker service rollback ${STACK_NAME}_app_rembourse_1
+                            docker service rollback ${STACK_NAME}_app_rembourse_2
+                            docker service rollback ${STACK_NAME}_nginx_lb
+                            
+                            exit 1
+                        fi
+                        
+                        echo "✅ SUCCÈS : L'application répond 200 et contient 'OK'"
+                    '''
+                }
+            }
         }
-    }
-}
     }
 
     // ================================================================
