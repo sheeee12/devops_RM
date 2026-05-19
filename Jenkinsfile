@@ -145,27 +145,28 @@ pipeline {
         // On attend 15 secondes que Swarm stabilise, puis on vérifie
         // que l'app répond bien. Si elle ne répond pas → rollback auto.
         // ================================================================
-        stage('Vérification de santé (Health Check)') {
+       stage('Vérification de santé (Health Check)') {
             steps {
                 script {
-                    echo '--- ATTENTE STABILISATION SWARM (15s) ---'
-                    sleep 15
+                    echo '--- ATTENTE STABILISATION SWARM (20s) ---'
+                    sleep 20
 
-                    echo '--- TEST DE L\'APPLICATION ---'
+                    echo '--- TEST DE L\'APPLICATION VIA LE RÉSEAU INTERNE ---'
                     sh '''
-                        HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8081/health || echo "000")
+                        # On contacte le service Nginx (nginx_lb) sur le port 80
+                        # car Jenkins est dans le même réseau Docker
+                        HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://nginx_lb/health || echo "000")
+                        
                         echo "Code HTTP reçu : $HTTP_CODE"
 
                         if [ "$HTTP_CODE" != "200" ]; then
-                            echo "⚠️  Health check échoué (code: $HTTP_CODE)"
-                            echo "🔄 ROLLBACK AUTOMATIQUE vers la version précédente..."
+                            echo "⚠️ Health check échoué (code: $HTTP_CODE)"
+                            echo "🔄 ROLLBACK AUTOMATIQUE..."
                             docker service rollback ma_gestion_app_rembourse_1
                             docker service rollback ma_gestion_app_rembourse_2
                             docker service rollback ma_gestion_nginx_lb
-                            echo "✅ Rollback effectué. L ancienne version est restaurée."
                             exit 1
                         fi
-
                         echo "✅ Application opérationnelle (HTTP 200)"
                     '''
                 }
