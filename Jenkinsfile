@@ -146,32 +146,41 @@ pipeline {
         // que l'app répond bien. Si elle ne répond pas → rollback auto.
         // ================================================================
        stage('Vérification de santé (Health Check)') {
-            steps {
-                script {
-                    echo '--- ATTENTE STABILISATION SWARM (20s) ---'
-                    sleep 20
+    steps {
+        script {
+            echo '--- ATTENTE STABILISATION SWARM (20s) ---'
+            sleep 20
 
-                    echo '--- TEST DE L\'APPLICATION VIA LE RÉSEAU INTERNE ---'
-                    sh '''
-                        # On contacte le service Nginx (nginx_lb) sur le port 80
-                        # car Jenkins est dans le même réseau Docker
-                        HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://nginx_lb/health.php || echo "000")
-                        
-                        echo "Code HTTP reçu : $HTTP_CODE"
+            echo '--- TEST HTTP ET CONTENU ---'
+            sh '''
+                # On récupère le code HTTP et le contenu en une seule commande
+                # --silent : pas de barre de progression
+                # --write-out : affiche le code à la fin
+                OUTPUT=$(curl -s -w "|%{http_code}" http://nginx_lb/health.php)
+                
+                CONTENT=$(echo "$OUTPUT" | cut -d'|' -f1)
+                HTTP_CODE=$(echo "$OUTPUT" | cut -d'|' -f2)
 
-                        if [ "$HTTP_CODE" != "200" ]; then
-                            echo "⚠️ Health check échoué (code: $HTTP_CODE)"
-                            echo "🔄 ROLLBACK AUTOMATIQUE..."
-                            docker service rollback ma_gestion_app_rembourse_1
-                            docker service rollback ma_gestion_app_rembourse_2
-                            docker service rollback ma_gestion_nginx_lb
-                            exit 1
-                        fi
-                        echo "✅ Application opérationnelle (HTTP 200)"
-                    '''
-                }
-            }
+                echo "Code HTTP : $HTTP_CODE"
+                echo "Contenu : $CONTENT"
+
+                # Condition de succès : Code 200 ET contenu "OK"
+                if [ "$HTTP_CODE" != "200" ] || [ "$CONTENT" != "OK" ]; then
+                    echo "⚠️ ERREUR DÉTECTÉE (Code: $HTTP_CODE / Réponse: $CONTENT)"
+                    echo "🔄 ROLLBACK AUTOMATIQUE..."
+                    
+                    docker service rollback ${STACK_NAME}_app_rembourse_1
+                    docker service rollback ${STACK_NAME}_app_rembourse_2
+                    docker service rollback ${STACK_NAME}_nginx_lb
+                    
+                    exit 1
+                fi
+                
+                echo "✅ Succès : L'application répond 200 OK"
+            '''
         }
+    }
+}
     }
 
     // ================================================================
