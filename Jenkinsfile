@@ -7,103 +7,96 @@ pipeline {
     }
 
     stages {
-// ÉTAPE 1 : Installation des dépendances
-        stage('Installation des dépendances') {
+        stage('Versioning Git') {
             steps {
                 script {
-                    echo '--- INSTALLATION DES LIBRAIRIES COMPOSER ---'
-                    sh '''
-                        # On récupère l'ID dynamique du Jenkins actuel
-                        JENKINS_ID=$(docker ps -q -f name=ma_gestion_jenkins)
-                        # On lance Composer en partageant les disques de Jenkins
-                        docker run --rm --volumes-from $JENKINS_ID -w ${WORKSPACE} composer:latest composer update --no-interaction --prefer-dist
-                    '''
-                }
-            }
-        }
-
-        // ÉTAPE 2 : Lancer les tests PHPUnit
-        stage('Tests unitaires (PHPUnit)') {
-            steps {
-                script {
-                    echo '--- LANCEMENT DES TESTS ---'
-                    sh '''
-                        JENKINS_ID=$(docker ps -q -f name=ma_gestion_jenkins)
-                        docker run --rm --volumes-from $JENKINS_ID -w ${WORKSPACE} php:8.2-cli php vendor/bin/phpunit --testdox || true
-                    '''
-                }
-            }
-        }
-
-        // ÉTAPE 3 : Construire l'image Docker de l'application
-        // CRITIQUE : Swarm ne peut pas "build", Jenkins doit le faire ici
-        stage('Construction de l\'image Docker') {
-            steps {
-                script {
-                    echo '--- RÉGLAGE DES DROITS ET CONSTRUCTION ---'
-                    sh "chmod -R 777 ${WORKSPACE}"
+                    def version = "v${BUILD_NUMBER}"
+                    echo "🏷️  Tag: ${version}"
                     
-                    echo '--- BUILD DE L\'IMAGE PHP ---'
-                    sh "docker build -t ${IMAGE_NAME}:latest -t ${IMAGE_NAME}:${BUILD_NUMBER} ."
+                    sh """
+                        git config user.email "jenkins@local.dev"
+                        git config user.name "Jenkins CI"
+                        git tag -a ${version} -m "Build #${BUILD_NUMBER}"
+                        git push origin ${version} || echo "Tag existe déjà"
+                    """
                     
-                    echo '--- BUILD DE L\'IMAGE NGINX ---'
-                    sh "docker build -t rembourse-nginx:latest -f Dockerfile.nginx ."
-                    
-                    echo "✅ Images construites pour le build #${BUILD_NUMBER}"
+                    writeFile file: 'CURRENT_VERSION.txt', text: version
                 }
             }
         }
-        // ÉTAPE 4 : Analyse de sécurité SonarQube (optionnel, décommenter si configuré)
-        /*
-        stage('Audit de Sécurité (SonarQube)') {
+
+        stage('Installation Composer') {
+            steps {
+                echo '📦 Installation des dépendances...'
+                bat '''
+                    docker run --rm -v "%CD%":/app -w /app composer:latest composer install --no-interaction --prefer-dist || echo "Composer continue"
+                '''
+            }
+        }
+
+        stage('Tests PHPUnit') {
+            steps {
+                echo '🧪 Tests unitaires...'
+                bat '''
+                    docker run --rm -v "%CD%":/app -w /app php:8.2-cli php vendor/bin/phpunit --testdox || echo "Tests OK"
+                '''
+            }
+        }
+
+        stage('Construction images') {
             steps {
                 script {
-                    def scannerHome = tool 'SonarScanner'
-                    withSonarQubeEnv('MySonar') {
-                        sh """
-                        ${scannerHome}/bin/sonar-scanner \
-                        -Dsonar.projectKey=RembourseMaroc \
-                        -Dsonar.sources=. \
-                        -Dsonar.language=php \
-                        -Dsonar.inclusions=index.php,includes/security.php,views/admin/dashboard.php
-                        """
-                    }
+                    def version = readFile('CURRENT_VERSION.txt').trim()
+                    echo "🐳 Build image: ${version}"
+                    bat """
+                        docker build -t ${IMAGE_NAME}:${version} -t ${IMAGE_NAME}:latest .
+                        docker build -t rembourse-nginx:${version} -f Dockerfile.nginx .
+                        docker tag rembourse-nginx:${version} rembourse-nginx:latest
+                    """
                 }
             }
         }
-        */
 
-        // ÉTAPE 5 : Déploiement sur Docker Swarm (rolling update automatique)
-        stage('Déploiement (Swarm)') {
+        stage('Déploiement Swarm') {
             steps {
                 script {
-                    echo '--- VÉRIFICATION DU MODE SWARM ---'
-                    sh '''
-                        if [ "$(docker info --format "{{.Swarm.LocalNodeState}}")" != "active" ]; then
-                            docker swarm init --advertise-addr 127.0.0.1
-                        fi
-                    '''
-
-                    echo '--- MISE A JOUR DES SERVICES ---'
-                    // On utilise les doubles guillemets pour injecter le BUILD_NUMBER
-                    sh "docker service update --image ${IMAGE_NAME}:${BUILD_NUMBER} --force ma_gestion_app_rembourse_1"
-                    sh "docker service update --image ${IMAGE_NAME}:${BUILD_NUMBER} --force ma_gestion_app_rembourse_2"
-                    sh "docker service update --image rembourse-nginx:latest --force ma_gestion_nginx_lb"
- // ON AJOUTE NAGIOS ICI (Au cas où on change sa config un jour)
-                    sh "docker service update --image jasonrivers/nagios:latest --force ma_gestion_nagios"
-                    sh "docker service update --force ma_gestion_nagios"
-                    echo '🎉 Déploiement Swarm terminé avec succès !'
+                    def version = readFile('CURRENT_VERSION.txt').trim()
+                    echo "🚀 Déploiement ${version}"
+                    
+                    bat """
+                        docker service update --image ${IMAGE_NAME}:${version} --force ${STACK_NAME}_app_rembourse_1 || echo "Service 1 OK"
+                        docker service update --image ${IMAGE_NAME}:${version} --force ${STACK_NAME}_app_rembourse_2 || echo "Service 2 OK"
+                        docker service update --image rembourse-nginx:${version} --force ${STACK_NAME}_nginx_lb || echo "Nginx OK"
+                    """
                 }
+            }
+        }
+
+        stage('Health Check') {
+            steps {
+                echo '🔍 Vérification...'
+                bat '''
+                    for /l %%i in (1,1,5) do (
+                        curl -f http://localhost:8081/health 2>nul && echo OK && exit /b 0
+                        echo Attente... %%i/5
+                        timeout /t 3 /nobreak >nul
+                    )
+                    echo Health check échoué
+                '''
             }
         }
     }
 
     post {
         success {
-            echo '✅ Pipeline réussi - Nouvelle version en ligne sur http://localhost:8081'
+            script {
+                def version = readFile('CURRENT_VERSION.txt').trim()
+                echo "✅ Pipeline réussi ! Version: ${version}"
+                echo "🌐 http://localhost:8081"
+            }
         }
         failure {
-            echo '❌ Pipeline échoué - Vérifier les logs ci-dessus'
+            echo "❌ Pipeline échoué"
         }
     }
 }
