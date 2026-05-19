@@ -155,7 +155,7 @@ pipeline {
                     sh '''
                         # On contacte le service Nginx (nginx_lb) sur le port 80
                         # car Jenkins est dans le même réseau Docker
-                        HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://nginx_lb/health || echo "000")
+                        HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://nginx_lb/health.php || echo "000")
                         
                         echo "Code HTTP reçu : $HTTP_CODE"
 
